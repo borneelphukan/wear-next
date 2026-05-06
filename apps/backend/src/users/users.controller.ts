@@ -1,4 +1,4 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Delete, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -22,9 +22,9 @@ export class UsersController {
     return { success: true, message: 'Logged out successfully' };
   }
 
-  @Post('delete')
+  @Delete(':email')
   @HttpCode(HttpStatus.OK)
-  deleteAccount(@Body() body: { email: string }) {
-    return this.usersService.deleteUser(body.email);
+  deleteAccount(@Param('email') email: string) {
+    return this.usersService.deleteUser(email);
   }
 }

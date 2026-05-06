@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -11,9 +11,25 @@ export default function DashboardScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
 
-  const firstName = (params.firstName as string) || 'User';
-
+  const [email, setEmail] = useState((params.email as string) || '');
+  const [userFirstName, setUserFirstName] = useState((params.firstName as string) || 'User');
   const [activeTab, setActiveTab] = useState<'home' | 'wardrobe' | 'settings'>('home');
+
+  useEffect(() => {
+    const loadSession = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('userSession');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.email) setEmail(parsed.email);
+          if (parsed.firstName) setUserFirstName(parsed.firstName);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadSession();
+  }, []);
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('userSession');
@@ -21,30 +37,41 @@ export default function DashboardScreen() {
     router.replace('/login');
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to permanently delete your account? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const email = (params.email as string) || '';
-              await axios.post('http://localhost:4000/users/delete', { email });
-              await AsyncStorage.removeItem('userSession');
-              Alert.alert('Success', 'Your account has been deleted.');
-              router.replace('/login');
-            } catch (error: any) {
-              const errorMsg = error.response?.data?.message || 'Failed to delete account. Please try again.';
-              Alert.alert('Error', errorMsg);
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteAccount = async () => {
+    try {
+      let deleteEmail = email;
+      if (!deleteEmail) {
+        const stored = await AsyncStorage.getItem('userSession');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          deleteEmail = parsed.email || '';
+        }
+      }
+      
+      const cleanEmail = deleteEmail?.trim()?.toLowerCase();
+      
+      if (!cleanEmail) {
+        Alert.alert('Error', 'No active session found.');
+        return;
+      }
+      
+      console.log('[DELETE BUTTON] Sending DELETE request to http://localhost:4000/users/' + encodeURIComponent(cleanEmail));
+      const response = await axios.delete('http://localhost:4000/users/' + encodeURIComponent(cleanEmail));
+      console.log('[DELETE BUTTON] API Response received:', response.data);
+  
+      await AsyncStorage.removeItem('userSession');
+      
+      Alert.alert('Success', 'Your account has been deleted.');
+      router.replace('/login');
+    } catch (error: any) {
+      console.error('[DELETE BUTTON] Error caught during deletion:', error);
+      if (error.response) {
+        console.error('[DELETE BUTTON] Error response data:', error.response.data);
+        console.error('[DELETE BUTTON] Error response status:', error.response.status);
+      }
+      const errorMsg = error.response?.data?.message || 'Failed to delete account. Please try again.';
+      Alert.alert('Error', errorMsg);
+    }
   };
 
   return (
@@ -53,7 +80,7 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerTitle}>Welcome, {firstName}!</Text>
+            <Text style={styles.headerTitle}>Welcome, {userFirstName}!</Text>
           </View>
           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
             <Text style={styles.logoutText}>Logout</Text>
@@ -78,7 +105,7 @@ export default function DashboardScreen() {
           <View>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Account Settings</Text>
-              <Text style={styles.settingsSub}>Email: {params.email || 'name@example.com'}</Text>
+              <Text style={styles.settingsSub}>Email: {email || 'name@example.com'}</Text>
               
               <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
                 <Text style={styles.deleteBtnText}>Delete Account</Text>

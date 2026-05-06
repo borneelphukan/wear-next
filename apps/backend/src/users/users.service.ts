@@ -60,16 +60,18 @@ export class UsersService {
   }
 
   async deleteUser(email: string) {
+    const cleanEmail = email?.trim()?.toLowerCase();
+    
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    await this.prisma.user.delete({
-      where: { email },
+    const deletedUser = await this.prisma.user.delete({
+      where: { email: cleanEmail },
     });
 
     return { success: true, message: 'Account deleted successfully' };
