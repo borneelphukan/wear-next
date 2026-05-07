@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { WardrobeModule } from './wardrobe/wardrobe.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WardrobeModule } from './wardrobe/wardrobe.module';
     PrismaModule,
     UsersModule,
     WardrobeModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Dimensions, Image, Platform, TextInput } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Dimensions, Image, Platform, TextInput, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
 import axiosInstance from '../api/axiosInstance';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 
@@ -115,6 +114,28 @@ export default function DashboardScreen() {
   const [activeTab, setActiveTab] = useState<'home' | 'wardrobe' | 'calendar' | 'ai' | 'settings'>('home');
   const [selectedEvent, setSelectedEvent] = useState<EventKey>('Office');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const sidebarAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      setIsSidebarVisible(true);
+      Animated.timing(sidebarAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: Platform.OS !== 'web',
+      }).start();
+    } else {
+      Animated.timing(sidebarAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: Platform.OS !== 'web',
+      }).start(() => {
+        setIsSidebarVisible(false);
+      });
+    }
+  }, [sidebarOpen]);
+
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number>(new Date().getDate());
   const [currentCalendarDate, setCurrentCalendarDate] = useState<Date>(new Date());
 
@@ -308,69 +329,75 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {activeTab === 'home' && (
-          <HomeTab
-            styles={styles}
-            userFirstName={userFirstName}
-            temperature={temperature}
-            weatherCode={weatherCode}
-            cityName={cityName}
-            weatherLoading={weatherLoading}
-            getTimeGreeting={getTimeGreeting}
-            getWeatherCondition={getWeatherCondition}
-            isSunny={isSunny}
-            activeOutfit={activeOutfit}
-            selectedEvent={selectedEvent}
-            setSelectedEvent={setSelectedEvent}
-            handleShuffle={handleShuffle}
-          />
-        )}
+      {activeTab !== 'ai' ? (
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {activeTab === 'home' && (
+            <HomeTab
+              styles={styles}
+              userFirstName={userFirstName}
+              temperature={temperature}
+              weatherCode={weatherCode}
+              cityName={cityName}
+              weatherLoading={weatherLoading}
+              getTimeGreeting={getTimeGreeting}
+              getWeatherCondition={getWeatherCondition}
+              isSunny={isSunny}
+              activeOutfit={activeOutfit}
+              selectedEvent={selectedEvent}
+              setSelectedEvent={setSelectedEvent}
+              handleShuffle={handleShuffle}
+            />
+          )}
 
-        {activeTab === 'wardrobe' && (
-          <WardrobeTab
-            styles={styles}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            ethnicOnly={ethnicOnly}
-            setEthnicOnly={setEthnicOnly}
-            selectedFilter={selectedFilter}
-            setSelectedFilter={setSelectedFilter}
-            refreshTrigger={refreshTrigger}
-          />
-        )}
+          {activeTab === 'wardrobe' && (
+            <WardrobeTab
+              styles={styles}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              ethnicOnly={ethnicOnly}
+              setEthnicOnly={setEthnicOnly}
+              selectedFilter={selectedFilter}
+              setSelectedFilter={setSelectedFilter}
+              refreshTrigger={refreshTrigger}
+            />
+          )}
 
-        {activeTab === 'calendar' && (
-          <CalendarTab
-            styles={styles}
-            currentMonthName={currentMonthName}
-            currentMonthShort={currentMonthShort}
-            currentYear={currentYear}
-            handlePrevMonth={handlePrevMonth}
-            handleNextMonth={handleNextMonth}
-            weeks={weeks}
-            selectedCalendarDay={selectedCalendarDay}
-            setSelectedCalendarDay={setSelectedCalendarDay}
-          />
-        )}
+          {activeTab === 'calendar' && (
+            <CalendarTab
+              styles={styles}
+              currentMonthName={currentMonthName}
+              currentMonthShort={currentMonthShort}
+              currentYear={currentYear}
+              handlePrevMonth={handlePrevMonth}
+              handleNextMonth={handleNextMonth}
+              weeks={weeks}
+              selectedCalendarDay={selectedCalendarDay}
+              setSelectedCalendarDay={setSelectedCalendarDay}
+            />
+          )}
 
-        {activeTab === 'ai' && (
+          {activeTab === 'settings' && (
+            <SettingsTab
+              styles={styles}
+              email={email}
+              handleDeleteAccount={handleDeleteAccount}
+            />
+          )}
+        </ScrollView>
+      ) : (
+        <View style={{ flex: 1 }}>
           <AiTab
             styles={styles}
             aiQuery={aiQuery}
             setAiQuery={setAiQuery}
+            weatherData={{
+              temperature,
+              condition: getWeatherCondition(weatherCode),
+              cityName,
+            }}
           />
-        )}
-
-        {activeTab === 'settings' && (
-          <SettingsTab
-            styles={styles}
-            email={email}
-            handleDeleteAccount={handleDeleteAccount}
-          />
-        )}
-
-      </ScrollView>
+        </View>
+      )}
 
       {activeTab === 'wardrobe' && (
         <>
@@ -413,17 +440,36 @@ export default function DashboardScreen() {
       </View>
 
       {/* Sidebar Overlay and Menu */}
-      {sidebarOpen && (
+      {isSidebarVisible && (
         <View style={styles.sidebarContainer}>
           {/* Semi-transparent Backdrop click to close */}
           <TouchableOpacity 
             activeOpacity={1} 
-            style={styles.sidebarBackdrop} 
-            onPress={() => setSidebarOpen(false)} 
-          />
+            style={StyleSheet.absoluteFill} 
+            onPress={() => setSidebarOpen(false)}
+          >
+            <Animated.View 
+              style={[
+                styles.sidebarBackdrop, 
+                { opacity: sidebarAnim }
+              ]} 
+            />
+          </TouchableOpacity>
           
           {/* Left Sidebar Content */}
-          <View style={styles.sidebarContent}>
+          <Animated.View 
+            style={[
+              styles.sidebarContent, 
+              { 
+                transform: [{ 
+                  translateX: sidebarAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-300, 0]
+                  })
+                }] 
+              }
+            ]}
+          >
             {/* Sidebar Header */}
             <View style={styles.sidebarHeader}>
               <Text style={styles.sidebarTitle}>Menu</Text>
@@ -463,7 +509,7 @@ export default function DashboardScreen() {
                 <Text style={styles.sidebarLogoutText}>Logout</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
         </View>
       )}
     </SafeAreaView>

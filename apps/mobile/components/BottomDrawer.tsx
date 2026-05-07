@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Alert, StyleSheet, View, FlatList, ActivityIndicator, ScrollView, Image } from "react-native";
+import { Alert, StyleSheet, View, FlatList, ActivityIndicator, ScrollView, Image, Modal, TouchableOpacity } from "react-native";
 import {
   HelperText,
   Menu,
   TextInput,
   TouchableRipple,
   useTheme,
-  Modal,
   Portal,
   Surface,
   List,
@@ -770,82 +769,98 @@ export const BottomDrawer = ({
 
   return (
     <>
-      <Portal>
-        <Modal
-          visible={isVisible}
-          onDismiss={onClose}
-          contentContainerStyle={[
-            styles.drawerModalContent,
-            { backgroundColor: '#ffffff' },
-          ]}
-        >
-          <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-            <View style={styles.drawerHeader}>
-              <Text style={styles.drawerTitle}>
-                {title}
-              </Text>
-              <IconButton icon="close" iconColor="#1a1a24" size={24} onPress={onClose} />
-            </View>
-            <View style={styles.formContainer}>
-              {renderedFields}
-              {children}
-            </View>
-            <Button
-              mode="contained"
-              onPress={handleSubmit}
-              loading={isSubmitting}
-              disabled={isSubmitting}
-              buttonColor="#5e5ce6"
-              textColor="#ffffff"
-              style={styles.submitBtn}
-            >
-              {submitButtonText}
-            </Button>
-          </ScrollView>
-        </Modal>
-      </Portal>
+      <Modal
+        transparent
+        visible={isVisible}
+        animationType="slide"
+        onRequestClose={onClose}
+      >
+        <View style={styles.overlay}>
+          <TouchableOpacity activeOpacity={1} style={styles.backdrop} onPress={onClose} />
+          <View style={[styles.drawerModalContent, { backgroundColor: '#ffffff' }]}>
+            <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+              <View style={styles.drawerHeader}>
+                <Text style={styles.drawerTitle}>
+                  {title}
+                </Text>
+                <IconButton icon="close" iconColor="#1a1a24" size={24} onPress={onClose} />
+              </View>
+              <View style={styles.formContainer}>
+                {renderedFields}
+                {children}
+              </View>
+              <Button
+                mode="contained"
+                onPress={handleSubmit}
+                loading={isSubmitting}
+                disabled={isSubmitting}
+                buttonColor="#5e5ce6"
+                textColor="#ffffff"
+                style={styles.submitBtn}
+              >
+                {submitButtonText}
+              </Button>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
-      <Portal>
-        <Modal
-          visible={isDatePickerVisible}
-          onDismiss={() => setDatePickerVisible(false)}
-          contentContainerStyle={[
-            styles.dateModalContent,
-            { backgroundColor: '#ffffff' },
-          ]}
-        >
-          <Calendar
-            onDayPress={handleDayPress}
-            markedDates={
-              activeDateField && formData[activeDateField]
-                ? {
-                    [formData[activeDateField]]: {
-                      selected: true,
-                      disableTouchEvent: true,
-                    },
-                  }
-                : {}
-            }
-            theme={{
-              backgroundColor: '#ffffff',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#656475',
-              selectedDayBackgroundColor: '#5e5ce6',
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: '#5e5ce6',
-              dayTextColor: '#1a1a24',
-              textDisabledColor: '#8b8a9f',
-              arrowColor: '#5e5ce6',
-              monthTextColor: '#1a1a24',
-            }}
-          />
-        </Modal>
-      </Portal>
+      <Modal
+        transparent
+        visible={isDatePickerVisible}
+        animationType="fade"
+        onRequestClose={() => setDatePickerVisible(false)}
+      >
+        <View style={styles.pickerOverlay}>
+          <TouchableOpacity activeOpacity={1} style={styles.backdrop} onPress={() => setDatePickerVisible(false)} />
+          <View style={[styles.dateModalContent, { backgroundColor: '#ffffff' }]}>
+            <Calendar
+              onDayPress={handleDayPress}
+              markedDates={
+                activeDateField && formData[activeDateField]
+                  ? {
+                      [formData[activeDateField]]: {
+                        selected: true,
+                        disableTouchEvent: true,
+                      },
+                    }
+                  : {}
+              }
+              theme={{
+                backgroundColor: '#ffffff',
+                calendarBackground: '#ffffff',
+                textSectionTitleColor: '#656475',
+                selectedDayBackgroundColor: '#5e5ce6',
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: '#5e5ce6',
+                dayTextColor: '#1a1a24',
+                textDisabledColor: '#8b8a9f',
+                arrowColor: '#5e5ce6',
+                monthTextColor: '#1a1a24',
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(26, 26, 36, 0.4)",
+  },
+  pickerOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(26, 26, 36, 0.4)",
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
   formContainer: { gap: 12, marginBottom: 16 },
   inputContainer: { marginBottom: 4 },
   autocompleteContainer: { position: "relative", marginBottom: 4 },
