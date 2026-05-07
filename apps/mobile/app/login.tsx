@@ -103,9 +103,9 @@ export default function LoginScreen() {
         password,
       });
 
-      const { user } = response.data;
+      const { user, accessToken } = response.data;
       
-      await AsyncStorage.setItem('userSession', JSON.stringify({ firstName: user.firstName, email: user.email }));
+      await AsyncStorage.setItem('userSession', JSON.stringify({ firstName: user.firstName, email: user.email, token: accessToken }));
 
       router.replace({
         pathname: '/dashboard',
@@ -142,9 +142,9 @@ export default function LoginScreen() {
         phone: phone || undefined,
       });
 
-      const user = response.data;
-
-      await AsyncStorage.setItem('userSession', JSON.stringify({ firstName: user.firstName, email: user.email }));
+      const { user, accessToken } = response.data;
+      
+      await AsyncStorage.setItem('userSession', JSON.stringify({ firstName: user.firstName, email: user.email, token: accessToken }));
 
       router.replace({
         pathname: '/dashboard',

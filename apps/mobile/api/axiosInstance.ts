@@ -17,6 +17,9 @@ axiosInstance.interceptors.request.use(
         if (parsedSession?.token) {
           config.headers.Authorization = `Bearer ${parsedSession.token}`;
         }
+        if (parsedSession?.email) {
+          config.headers['x-user-email'] = parsedSession.email;
+        }
       } catch (e) {
         console.error('Error parsing session token in axios interceptor', e);
       }

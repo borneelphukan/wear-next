@@ -18,6 +18,7 @@ model User {
   updatedAt DateTime @updatedAt
   
   devices   Device[]
+  wardrobes Wardrobe[]
 
   @@map("users")
 }
@@ -46,4 +47,21 @@ model Device {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("devices")
+}
+
+model Wardrobe {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  apparel_name String
+  photo        String?
+  type         String
+  material     String
+  color        String
+  season       String
+  event        String
+  date_added   DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wardrobes")
 }

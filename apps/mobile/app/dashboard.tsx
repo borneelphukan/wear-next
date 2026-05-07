@@ -13,6 +13,7 @@ import { WardrobeTab } from '../components/tabs/WardrobeTab';
 import { CalendarTab } from '../components/tabs/CalendarTab';
 import { AiTab } from '../components/tabs/AiTab';
 import { SettingsTab } from '../components/tabs/SettingsTab';
+import BottomDrawer, { FormField } from '../components/BottomDrawer';
 
 // --- Weather helpers ---
 
@@ -121,6 +122,29 @@ export default function DashboardScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [ethnicOnly, setEthnicOnly] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'color' | 'material' | 'season'>('all');
+  const [isAddDrawerVisible, setIsAddDrawerVisible] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const wardrobeFields: FormField[] = [
+    { name: 'apparel_name', label: 'Apparel Name', type: 'text', required: true, icon: 'tag' },
+    { name: 'photo', label: 'Garment Image', type: 'image', required: false, icon: 'image' },
+    { name: 'type', label: 'Category', type: 'dropdown', items: ['Tops', 'Bottoms', 'Outerwear', 'Ethnic', 'Footwear', 'Accessories'], required: true, icon: 'shape' },
+    { name: 'material', label: 'Material', type: 'dropdown', items: ['Cotton', 'Wool', 'Polyester', 'Denim', 'Leather', 'Silk', 'Linen'], required: true, icon: 'texture' },
+    { name: 'color', label: 'Color', type: 'dropdown', items: ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Gray', 'Brown', 'Beige'], required: true, icon: 'palette' },
+    { name: 'season', label: 'Season', type: 'dropdown', items: ['Spring', 'Summer', 'Autumn', 'Winter'], required: true, icon: 'weather-sunny' },
+    { name: 'event', label: 'Event Type', type: 'dropdown', items: ['Casual', 'Formal', 'Party', 'Ethnic', 'Sports'], required: true, icon: 'calendar-star' },
+  ];
+
+  const handleAddWardrobeItem = async (data: any) => {
+    try {
+      await axiosInstance.post('/wardrobe', data);
+      setRefreshTrigger(prev => prev + 1);
+      Alert.alert('Success', 'Garment successfully added to your wardrobe!');
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Error', 'Failed to add garment. Please try again.');
+    }
+  };
 
   // AI Assistant state
   const [aiQuery, setAiQuery] = useState('');
@@ -312,6 +336,7 @@ export default function DashboardScreen() {
             setEthnicOnly={setEthnicOnly}
             selectedFilter={selectedFilter}
             setSelectedFilter={setSelectedFilter}
+            refreshTrigger={refreshTrigger}
           />
         )}
 
@@ -346,6 +371,22 @@ export default function DashboardScreen() {
         )}
 
       </ScrollView>
+
+      {activeTab === 'wardrobe' && (
+        <>
+          <TouchableOpacity style={styles.fabButton} onPress={() => setIsAddDrawerVisible(true)}>
+            <Text style={styles.fabButtonText}>+</Text>
+          </TouchableOpacity>
+          <BottomDrawer
+            isVisible={isAddDrawerVisible}
+            onClose={() => setIsAddDrawerVisible(false)}
+            title="Add New Apparel"
+            fields={wardrobeFields}
+            onSubmit={handleAddWardrobeItem}
+            submitButtonText="Add to Wardrobe"
+          />
+        </>
+      )}
 
       {/* Modern High-End Tab Navigation Bar */}
       <View style={styles.navBar}>
@@ -1487,8 +1528,9 @@ export const styles: any = StyleSheet.create({
   },
   fabButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 90,
     right: 20,
+    zIndex: 10,
     width: 56,
     height: 56,
     borderRadius: 28,

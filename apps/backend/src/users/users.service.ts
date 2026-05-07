@@ -32,7 +32,12 @@ export class UsersService {
     });
 
     const { password, ...result } = user;
-    return result;
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload);
+    return {
+      user: result,
+      accessToken,
+    };
   }
 
   async login(email: string, passwordPlain: string) {
