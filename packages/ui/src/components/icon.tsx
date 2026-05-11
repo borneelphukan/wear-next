@@ -1,51 +1,44 @@
-import type { MaterialSymbol } from "material-symbols";
+import { MaterialIcons } from "@expo/vector-icons";
 import { forwardRef } from "react";
+import { TextProps } from "react-native";
 
-export type IconType = MaterialSymbol;
+export type IconType = keyof typeof MaterialIcons.glyphMap;
 export type IconColor = 'primary' | 'secondary' | 'default';
 export type IconSize = 'lg' | 'md' | 'base' | 'sm' | 'xs';
 
-export interface IconProps extends React.ComponentPropsWithoutRef<"i"> {
+export interface IconProps extends Omit<TextProps, 'style'> {
   type: IconType;
   color?: IconColor;
   size?: IconSize;
+  className?: string;
 }
 
-const Icon = forwardRef<HTMLElement, IconProps>(
+const Icon = forwardRef<any, IconProps>(
   ({ type, color = 'default', size = 'md', className = "", ...props }, ref) => {
     
     const colorClasses: Record<IconColor, string> = {
-      primary: "text-blue-500",
-      secondary: "text-green-500",
-      default: "",
+      primary: "#3b82f6", // blue-500
+      secondary: "#22c55e", // green-500
+      default: "#1f2937", // gray-800
     };
 
-    const sizeClasses: Record<IconSize, string> = {
-      lg: "text-xl",
-      md: "text-lg",
-      base: "text-base",
-      sm: "text-sm",
-      xs: "text-xs",
+    const sizeMapping: Record<IconSize, number> = {
+      lg: 24,
+      md: 20,
+      base: 18,
+      sm: 16,
+      xs: 14,
     };
-
-    const baseClasses = "material-symbols-outlined leading-none";
-
-    const combinedClassName = `
-      ${baseClasses}
-      ${colorClasses[color]}
-      ${sizeClasses[size]}
-      ${props.onClick ? "cursor-pointer" : ""}
-      ${className}
-    `.trim().replace(/\s+/g, ' ');
 
     return (
-      <i
-        ref={ref}
-        className={combinedClassName}
+      // @ts-expect-error: Upstream type incompatibility with newer React definition
+      <MaterialIcons
+        name={type}
+        size={sizeMapping[size]}
+        color={colorClasses[color]}
+        className={className}
         {...props}
-      >
-        {type}
-      </i>
+      />
     );
   }
 );

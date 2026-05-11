@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Image, Platform, Animated, ActivityIndicator } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Image, Platform, Animated, ActivityIndicator } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
@@ -8,11 +9,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import { HomeTab } from '../components/tabs/HomeTab';
-import { WardrobeTab } from '../components/tabs/WardrobeTab';
-import { CalendarTab } from '../components/tabs/CalendarTab';
-import { AiTab } from '../components/tabs/AiTab';
-import { SettingsTab } from '../components/tabs/SettingsTab';
+import { Home } from '../components/tabs/Home';
+import { Wardrobe } from '../components/tabs/Wardrobe';
+import { CalendarTab } from '../components/tabs/Calendar';
+import { AiTab } from '../components/tabs/AI';
+import { Settings } from '../components/tabs/Settings';
 import BottomDrawer, { FormField } from '../components/BottomDrawer';
 import {
   MenuIcon,
@@ -414,21 +415,17 @@ export default function DashboardScreen() {
     }
   };
 
-  // Fetch weather & cached AI styling insight once per hour
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const now = new Date();
-        // Construct a cache key specific to the current calendar date and natural clock hour
         const currentHourKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
 
-        // 1. Check AsyncStorage for existing dashboard cache
         const cachedData = await AsyncStorage.getItem('dashboard_data_cache');
         if (cachedData) {
           try {
             const parsedCache = JSON.parse(cachedData);
             if (parsedCache && parsedCache.hourKey === currentHourKey) {
-              // Cache HIT: Same natural hour. Reuse all values and skip expensive API fetches
               setTemperature(parsedCache.temp);
               setWeatherCode(parsedCache.code);
               setCityName(parsedCache.city);
@@ -621,34 +618,35 @@ export default function DashboardScreen() {
   const themeBorder = isDark ? '#222233' : '#f0eff6';
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeBg }]}>
+    <SafeAreaView className="flex-1" style={{ flex: 1, height: '100%', backgroundColor: themeBg, overflow: 'hidden' }}>
       <StatusBar style={isDark ? "light" : "dark"} />
 
       {/* Top Header Row */}
-      <View style={[styles.header, { backgroundColor: themeBg, borderBottomColor: themeBorder }]}>
-        <View style={styles.headerRow}>
-          <View style={styles.logoContainer}>
-            <TouchableOpacity onPress={() => setSidebarOpen(true)} style={{ marginRight: 8, padding: 4 }}>
+      <View className="px-5 pt-4 pb-4 border-b" style={{ backgroundColor: themeBg, borderBottomColor: themeBorder }}>
+        <View className="flex-row justify-between items-center">
+          <View className="flex-row items-center">
+            <TouchableOpacity onPress={() => setSidebarOpen(true)} className="mr-2 p-1">
               <MenuIcon color={themeText} />
             </TouchableOpacity>
-            <Text style={[styles.logoText, { color: themeText }]}>WearNext</Text>
+            <Text className="text-[22px] font-black tracking-tight ml-2" style={{ color: themeText }}>WearNext</Text>
           </View>
           <Image
             source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80' }}
-            style={styles.avatar}
+            className="w-[38px] h-[38px] rounded-full border-[1.5px] border-border-brand"
           />
         </View>
       </View>
 
-      {activeTab !== 'ai' ? (
+      <View className="flex-1" style={{ flex: 1 }}>
+        {activeTab !== 'ai' ? (
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, { backgroundColor: themeBg }]}
+          className="flex-1"
+          contentContainerStyle={{ padding: 20, paddingBottom: 120, backgroundColor: themeBg }}
           showsVerticalScrollIndicator={false}
-          style={{ backgroundColor: themeBg }}
+          style={{ flex: 1, backgroundColor: themeBg }}
         >
           {activeTab === 'home' && (
-            <HomeTab
-              styles={styles}
+            <Home
               userFirstName={userFirstName}
               temperature={temperature}
               weatherCode={weatherCode}
@@ -666,8 +664,7 @@ export default function DashboardScreen() {
           )}
 
           {activeTab === 'wardrobe' && (
-            <WardrobeTab
-              styles={styles}
+            <Wardrobe
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               ethnicOnly={ethnicOnly}
@@ -680,7 +677,6 @@ export default function DashboardScreen() {
 
           {activeTab === 'calendar' && (
             <CalendarTab
-              styles={styles}
               currentMonthName={currentMonthName}
               currentMonthShort={currentMonthShort}
               currentYear={currentYear}
@@ -693,11 +689,9 @@ export default function DashboardScreen() {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsTab
-              styles={styles}
+            <Settings
               email={email}
               handleDeleteAccount={handleDeleteAccount}
-              handleLogout={handleLogout}
               useCelsius={useCelsius}
               darkMode={darkMode}
               onPreferenceChange={handleUpdatePreference}
@@ -705,9 +699,8 @@ export default function DashboardScreen() {
           )}
         </ScrollView>
       ) : (
-        <View style={{ flex: 1 }}>
+        <View className="flex-1" style={{ flex: 1 }}>
           <AiTab
-            styles={styles}
             aiQuery={aiQuery}
             setAiQuery={setAiQuery}
             weatherData={{
@@ -718,11 +711,16 @@ export default function DashboardScreen() {
           />
         </View>
       )}
+      </View>
 
       {activeTab === 'wardrobe' && (
         <>
-          <TouchableOpacity style={styles.fabButton} onPress={handleLaunchOutfitCamera}>
-            <Text style={styles.fabButtonText}>+</Text>
+          <TouchableOpacity
+            className="absolute bottom-[90px] right-5 z-10 w-14 h-14 rounded-full bg-brand justify-center items-center"
+            style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 }}
+            onPress={handleLaunchOutfitCamera}
+          >
+            <Text className="text-white text-[28px] font-light" style={{ marginTop: -2 }}>+</Text>
           </TouchableOpacity>
           <BottomDrawer
             isVisible={isAddDrawerVisible}
@@ -733,109 +731,110 @@ export default function DashboardScreen() {
             onSubmit={handleAddWardrobeItem}
             submitButtonText="Add to Wardrobe"
           />
-
           {isProcessingImage && (
-            <View style={styles.processingOverlay}>
+            <View className="absolute inset-0 bg-[rgba(26,26,36,0.85)] justify-center items-center z-[9999]">
               <ActivityIndicator size="large" color="#ffffff" />
-              <Text style={styles.processingText}>Extracting & Auto-Tagging with AI...</Text>
+              <Text className="text-white mt-4 text-base font-semibold">Extracting & Auto-Tagging with AI...</Text>
             </View>
           )}
         </>
       )}
 
-      {/* Bottom Premium Tab Navigation */}
-      <View style={[styles.navBar, { backgroundColor: themeSurface, borderTopColor: themeBorder }]}>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('home')}>
+      {/* Bottom Tab Navigation */}
+      <View
+        className="absolute bottom-0 left-0 right-0 h-[75px] flex-row items-center justify-around pb-4 border-t z-50"
+        style={{ backgroundColor: themeSurface, borderTopColor: themeBorder, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 10 }}
+      >
+        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('home')}>
           <HomeNavIcon active={activeTab === 'home'} />
-          <Text style={[styles.navText, activeTab === 'home' && styles.navTextActive]}>Home</Text>
+          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'home' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('wardrobe')}>
+        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('wardrobe')}>
           <WardrobeNavIcon active={activeTab === 'wardrobe'} />
-          <Text style={[styles.navText, activeTab === 'wardrobe' && styles.navTextActive]}>Wardrobe</Text>
+          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'wardrobe' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Wardrobe</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('calendar')}>
+        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('calendar')}>
           <CalendarNavIcon active={activeTab === 'calendar'} />
-          <Text style={[styles.navText, activeTab === 'calendar' && styles.navTextActive]}>Calendar</Text>
+          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'calendar' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Calendar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('ai')}>
+        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('ai')}>
           <AiNavIcon active={activeTab === 'ai'} />
-          <Text style={[styles.navText, activeTab === 'ai' && styles.navTextActive]}>AI</Text>
+          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'ai' ? 'text-brand' : 'text-[#8e8ea0]'}`}>AI</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('settings')}>
+        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('settings')}>
           <SettingsNavIcon active={activeTab === 'settings'} />
-          <Text style={[styles.navText, activeTab === 'settings' && styles.navTextActive]}>Settings</Text>
+          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'settings' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Settings</Text>
         </TouchableOpacity>
       </View>
 
       {/* Sidebar Overlay and Menu */}
       {isSidebarVisible && (
-        <View style={styles.sidebarContainer}>
-          {/* Semi-transparent Backdrop click to close */}
-          <TouchableOpacity 
-            activeOpacity={1} 
-            style={StyleSheet.absoluteFill} 
+        <View className="absolute inset-0 z-[10000] flex-row">
+          <TouchableOpacity
+            activeOpacity={1}
+            className="absolute inset-0"
             onPress={() => setSidebarOpen(false)}
           >
-            <Animated.View 
-              style={[
-                styles.sidebarBackdrop, 
-                { opacity: sidebarAnim }
-              ]} 
+            <Animated.View
+              className="absolute inset-0 bg-[rgba(0,0,0,0.4)]"
+              style={{ opacity: sidebarAnim }}
             />
           </TouchableOpacity>
-          
-          {/* Left Sidebar Content */}
-          <Animated.View 
+
+          <Animated.View
+            className="w-[82%] max-w-[290px] h-full pb-6 rounded-tr-[32px] rounded-br-[32px] overflow-hidden"
             style={[
-              styles.sidebarContent, 
-              { 
-                transform: [{ 
-                  translateX: sidebarAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [-300, 0]
-                  })
-                }] 
-              }
+              { backgroundColor: themeSurface, shadowColor: '#000', shadowOffset: { width: 5, height: 0 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 10 },
+              { transform: [{ translateX: sidebarAnim.interpolate({ inputRange: [0, 1], outputRange: [-300, 0] }) }] }
             ]}
           >
-            {/* Sidebar Header */}
-            <View style={styles.sidebarHeader}>
-              <Text style={styles.sidebarTitle}>Menu</Text>
-              <TouchableOpacity onPress={() => setSidebarOpen(false)} style={styles.closeBtn}>
-                <CloseIcon />
-              </TouchableOpacity>
+            {/* High-Fidelity Header */}
+            <View className="px-6 pt-14 pb-6 border-b border-[#f5f4fa]" style={{ backgroundColor: themeSurface }}>
+              <View className="w-16 h-16 rounded-full p-0.5 border-2 border-[#5e5ce6] mb-4">
+                <Image
+                  source={{ uri: `https://ui-avatars.com/api/?name=${userFirstName}&background=5e5ce6&color=fff&size=128` }}
+                  className="w-full h-full rounded-full bg-[#f1f0ff]"
+                />
+              </View>
+              <Text className="text-[22px] font-extrabold text-text mb-0.5 tracking-tight">{userFirstName || 'User'}</Text>
+              <Text className="text-[13.5px] font-medium text-text-faint mb-3.5">Style Enthusiast</Text>
+              <View className="self-start bg-[#eef2ff] px-3.5 py-1 rounded-full">
+                <Text className="text-[#5e5ce6] text-[11px] font-extrabold">{wardrobeItems.length || 0} Items</Text>
+              </View>
             </View>
 
-            {/* Menu Options List */}
-            <ScrollView style={styles.menuItemsList} showsVerticalScrollIndicator={false}>
-              <TouchableOpacity style={styles.menuItem} onPress={() => { setSidebarOpen(false); setActiveTab('settings'); }}>
-                <View style={styles.menuItemIconWrapper}>
-                  <ProfileIcon />
-                </View>
-                <Text style={styles.menuItemText}>Profile</Text>
+            {/* Streamlined Sidebar Menu */}
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingBottom: 24, paddingHorizontal: 24 }}>
+              <Text className="text-[11px] font-extrabold text-text-faint tracking-widest mb-5 opacity-70">SYSTEM</Text>
+              
+              <TouchableOpacity 
+                className="flex-row items-center py-3 mb-2" 
+                onPress={() => { setSidebarOpen(false); setActiveTab('settings'); }}
+              >
+                <MaterialCommunityIcons name="cog-outline" size={23} color="#4b5563" style={{ marginRight: 16 }} />
+                <Text className="text-[16px] font-semibold text-[#374151]">Settings</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem} onPress={() => { setSidebarOpen(false); Alert.alert('Notifications', 'No new notifications.'); }}>
-                <View style={styles.menuItemIconWrapper}>
-                  <BellIcon />
-                </View>
-                <Text style={styles.menuItemText}>Notifications</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => { setSidebarOpen(false); Alert.alert('Privacy', 'Your privacy settings are up to date.'); }}>
-                <View style={styles.menuItemIconWrapper}>
-                  <PrivacyIcon />
-                </View>
-                <Text style={styles.menuItemText}>Privacy</Text>
+              <TouchableOpacity 
+                className="flex-row items-center py-3" 
+                onPress={() => { setSidebarOpen(false); Alert.alert('Help', 'Redirecting to Customer Support center.'); }}
+              >
+                <MaterialCommunityIcons name="help-circle-outline" size={23} color="#4b5563" style={{ marginRight: 16 }} />
+                <Text className="text-[16px] font-semibold text-[#374151]">Help & Support</Text>
               </TouchableOpacity>
             </ScrollView>
 
-            {/* Bottom Logout Button */}
-            <View style={styles.sidebarFooter}>
-              <TouchableOpacity style={styles.sidebarLogoutBtn} onPress={() => { setSidebarOpen(false); handleLogout(); }}>
-                <LogoutIcon />
-                <Text style={styles.sidebarLogoutText}>Logout</Text>
+            {/* Redesigned Branding Footer */}
+            <View className="pt-5 pb-2 px-6 border-t border-[#f5f4fa] items-center">
+              <TouchableOpacity
+                className="flex-row items-center justify-center w-full bg-surface rounded-full h-12 border border-[#fecaca]"
+                style={{ shadowColor: '#ef4444', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 }}
+                onPress={() => { setSidebarOpen(false); handleLogout(); }}
+              >
+                <MaterialCommunityIcons name="logout-variant" size={20} color="#ef4444" style={{ marginRight: 8 }} />
+                <Text className="text-[#b91c1c] font-extrabold text-[15px]">Sign Out</Text>
               </TouchableOpacity>
+              <Text className="text-[#b1b0c5] text-[12px] font-medium mt-4 tracking-wide">WearNext v2.4.0</Text>
             </View>
           </Animated.View>
         </View>
@@ -843,1344 +842,3 @@ export default function DashboardScreen() {
     </SafeAreaView>
   );
 }
-
-export const styles: any = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fafafc',
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 15,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0eff6',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#5e5ce6',
-    marginLeft: 8,
-    letterSpacing: -0.5,
-  },
-  avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1.5,
-    borderColor: '#e8e7fc',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 100,
-  },
-  greetingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 25,
-  },
-  greetingTextContainer: {
-    flex: 1,
-    paddingRight: 15,
-  },
-  greetingTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#1a1a24',
-    lineHeight: 32,
-    marginBottom: 8,
-  },
-  greetingSubtitle: {
-    fontSize: 14,
-    color: '#656475',
-    lineHeight: 20,
-    fontWeight: '500',
-  },
-  weatherIconContainer: {
-    paddingTop: 4,
-  },
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#8b8a9f',
-    letterSpacing: 1.5,
-    marginBottom: 12,
-  },
-  eventsScroll: {
-    paddingBottom: 25,
-  },
-  eventPill: {
-    paddingHorizontal: 22,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#f1f0fc',
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#e3e1f5',
-  },
-  eventPillActive: {
-    backgroundColor: '#5e5ce6',
-    borderColor: '#5e5ce6',
-  },
-  eventPillText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#656475',
-  },
-  eventPillTextActive: {
-    color: '#ffffff',
-  },
-  wardrobeCard: {
-    width: '100%',
-    height: 380,
-    borderRadius: 28,
-    backgroundColor: '#f1f0fc',
-    position: 'relative',
-    marginBottom: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    shadowColor: '#5e5ce6',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 3,
-  },
-  collageContainer: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  collageBackgroundItem: {
-    width: 220,
-    height: 220,
-    borderRadius: 16,
-    position: 'absolute',
-    top: 30,
-    opacity: 0.9,
-  },
-  collageMiddleItem: {
-    width: 200,
-    height: 200,
-    borderRadius: 16,
-    position: 'absolute',
-    bottom: 80,
-    zIndex: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  collageForegroundItem: {
-    width: 150,
-    height: 150,
-    borderRadius: 16,
-    position: 'absolute',
-    bottom: 25,
-    zIndex: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-  },
-  collageAccessoryItem: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    position: 'absolute',
-    top: 35,
-    left: 35,
-    zIndex: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-  },
-  outfitOverlayLabel: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: '#ffffff',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 18,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    zIndex: 5,
-  },
-  outfitOverlayText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#1a1a24',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 25,
-    gap: 12,
-  },
-  wearBtn: {
-    flex: 1,
-    height: 52,
-    backgroundColor: '#5e5ce6',
-    borderRadius: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#5e5ce6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  wearBtnText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  shuffleBtn: {
-    flex: 1,
-    height: 52,
-    borderWidth: 2,
-    borderColor: '#5e5ce6',
-    backgroundColor: '#ffffff',
-    borderRadius: 26,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  shuffleBtnText: {
-    color: '#5e5ce6',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  infoCardsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 15,
-  },
-  styleTipCard: {
-    flex: 1,
-    backgroundColor: '#f4f3fd',
-    borderRadius: 24,
-    padding: 16,
-    minHeight: 150,
-  },
-  nextUpCard: {
-    flex: 1,
-    backgroundColor: '#ffebe0',
-    borderRadius: 24,
-    padding: 16,
-    minHeight: 150,
-  },
-  cardHeaderRow: {
-    marginBottom: 12,
-  },
-  cardSubtitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#5e5ce6',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  cardSubtitleOrange: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#e07a5f',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  cardBodyText: {
-    fontSize: 13,
-    color: '#1a1a24',
-    lineHeight: 18,
-    fontWeight: '600',
-  },
-  placeholderContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 100,
-    paddingHorizontal: 20,
-  },
-  placeholderTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1a1a24',
-    marginBottom: 8,
-  },
-  placeholderSub: {
-    fontSize: 14,
-    color: '#656475',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  settingsContainer: {
-    paddingVertical: 10,
-  },
-  settingsCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  settingsCardTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1a1a24',
-    marginBottom: 20,
-  },
-  settingsEmailLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#8b8a9f',
-    letterSpacing: 1.5,
-    marginBottom: 6,
-  },
-  settingsEmailValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a24',
-    marginBottom: 25,
-  },
-  logoutBtn: {
-    backgroundColor: '#eae9f1',
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  logoutBtnText: {
-    color: '#1a1a24',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  deleteBtn: {
-    backgroundColor: '#ff4d6d',
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteBtnText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  navBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 75,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#f0eff6',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingBottom: 15,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 10,
-  },
-  navText: {
-    color: '#8e8ea0',
-    fontWeight: '700',
-    fontSize: 11,
-    marginTop: 4,
-  },
-  navTextActive: {
-    color: '#5e5ce6',
-  },
-  sidebarContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    zIndex: 10000,
-    flexDirection: 'row',
-  },
-  sidebarBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  sidebarContent: {
-    width: '75%',
-    maxWidth: 300,
-    height: '100%',
-    backgroundColor: '#ffffff',
-    paddingTop: 50,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-    borderTopRightRadius: 24,
-    borderBottomRightRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 5, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  sidebarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 40,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f2fc',
-  },
-  sidebarTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#5e5ce6',
-  },
-  closeBtn: {
-    padding: 4,
-  },
-  menuItemsList: {
-    flex: 1,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    marginBottom: 8,
-    borderRadius: 12,
-  },
-  menuItemIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#f8f8fc',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  menuItemText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a24',
-  },
-  sidebarFooter: {
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f2fc',
-  },
-  sidebarLogoutBtn: {
-    flexDirection: 'row',
-    backgroundColor: '#fee2e2',
-    borderColor: '#ff4d6d40',
-    borderWidth: 1.5,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    width: '100%',
-  },
-  sidebarLogoutText: {
-    color: '#ff4d6d',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  calendarTabContainer: {
-    paddingBottom: 40,
-  },
-  calendarHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  calendarMonthText: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#1a1a24',
-    marginBottom: 4,
-  },
-  calendarFestivalsText: {
-    fontSize: 13,
-    color: '#656475',
-    fontWeight: '600',
-  },
-  calendarNavArrows: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  arrowButton: {
-    padding: 6,
-  },
-  syncCard: {
-    backgroundColor: '#f1f0fc',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 25,
-  },
-  syncLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  syncCircleGroup: {
-    width: 44,
-    height: 32,
-    position: 'relative',
-    marginRight: 12,
-  },
-  syncCircle1: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#e1e0f0',
-    position: 'absolute',
-    left: 0,
-    top: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  syncCircle2: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#5e5ce6',
-    position: 'absolute',
-    left: 14,
-    top: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-    shadowColor: '#5e5ce6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  syncCircleInner: {
-    width: 14,
-    height: 10,
-    borderWidth: 1.5,
-    borderColor: '#a3a3c2',
-    borderRadius: 2,
-  },
-  syncCircleInnerActive: {
-    width: 14,
-    height: 10,
-    borderWidth: 1.5,
-    borderColor: '#5e5ce6',
-    borderRadius: 2,
-  },
-  syncTextContainer: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  syncTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#656475',
-    letterSpacing: 1.2,
-    marginBottom: 4,
-  },
-  syncSubtext: {
-    fontSize: 12,
-    color: '#1a1a24',
-    fontWeight: '600',
-    lineHeight: 16,
-  },
-  connectBtn: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#5e5ce6',
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  connectBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#5e5ce6',
-  },
-  gridCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#f0eff6',
-    overflow: 'hidden',
-    marginBottom: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  gridHeaderRow: {
-    flexDirection: 'row',
-    backgroundColor: '#f1f0fc',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0eff6',
-  },
-  gridHeaderText: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#656475',
-    letterSpacing: 0.5,
-  },
-  gridBody: {
-    paddingVertical: 5,
-  },
-  gridRowLine: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0eff6',
-  },
-  gridCell: {
-    flex: 1,
-    height: 72,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    borderRightWidth: 1,
-    borderRightColor: '#f0eff6',
-  },
-  emptyGridCell: {
-    flex: 1,
-    height: 72,
-    borderRightWidth: 1,
-    borderRightColor: '#f0eff6',
-  },
-  gridCellText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1a1a24',
-  },
-  festiveCell: {
-    backgroundColor: '#fffcf6',
-  },
-  festiveCellText: {
-    color: '#c96f2c',
-    fontWeight: '800',
-  },
-  festiveLabel: {
-    position: 'absolute',
-    bottom: 8,
-    fontSize: 9,
-    fontWeight: '900',
-    color: '#c96f2c',
-    letterSpacing: 0.5,
-  },
-  activeCell: {
-    borderWidth: 2,
-    borderColor: '#5e5ce6',
-    borderRadius: 8,
-    zIndex: 10,
-  },
-  activeCellText: {
-    color: '#5e5ce6',
-    fontWeight: '900',
-  },
-  activeTag: {
-    position: 'absolute',
-    top: -1,
-    backgroundColor: '#5e5ce6',
-    color: '#ffffff',
-    fontSize: 8,
-    fontWeight: '900',
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 3,
-    letterSpacing: 0.3,
-    zIndex: 11,
-  },
-  activeOutfitBox: {
-    width: 24,
-    height: 24,
-    borderWidth: 1.5,
-    borderColor: '#e1e0f0',
-    borderRadius: 6,
-    marginTop: 4,
-    backgroundColor: '#ffffff',
-  },
-  plannedHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  plannedTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1a1a24',
-  },
-  editDetailsLink: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#5e5ce6',
-  },
-  plannedCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#f0eff6',
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  plannedLeftCol: {
-    flex: 1.2,
-    paddingRight: 10,
-    justifyContent: 'space-between',
-  },
-  plannedOccasionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  plannedOccasionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#a86c43',
-    letterSpacing: 1,
-  },
-  plannedOutfitTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#1a1a24',
-    marginBottom: 6,
-  },
-  plannedOutfitSub: {
-    fontSize: 13,
-    color: '#656475',
-    fontWeight: '600',
-    lineHeight: 18,
-    marginBottom: 15,
-  },
-  plannedWeatherPills: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 15,
-  },
-  plannedPill: {
-    backgroundColor: '#f1f0fc',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  plannedPillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1a1a24',
-  },
-  confirmBtn: {
-    backgroundColor: '#5e5ce6',
-    borderRadius: 20,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#5e5ce6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  confirmBtnText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  plannedRightCol: {
-    flex: 0.9,
-    height: 180,
-    borderRadius: 18,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  previewImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  previewOverlay: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  previewText: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#1a1a24',
-    letterSpacing: 0.5,
-  },
-  adviceCard: {
-    backgroundColor: '#eef2ff',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  adviceIconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  adviceText: {
-    flex: 1,
-    fontSize: 13,
-    color: '#5e5ce6',
-    fontWeight: '700',
-    lineHeight: 18,
-  },
-  wardrobeContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 40,
-  },
-  searchToggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  searchBarWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f0f6',
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    height: 44,
-    marginRight: 12,
-  },
-  searchInputField: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1a1a24',
-    marginLeft: 8,
-    paddingVertical: 0,
-  },
-  ethnicTogglePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f0f6',
-    borderRadius: 22,
-    paddingHorizontal: 14,
-    height: 44,
-  },
-  ethnicToggleLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#656475',
-    letterSpacing: 0.5,
-    marginRight: 8,
-  },
-  toggleSwitch: {
-    width: 38,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#d1d1d6',
-    padding: 2,
-    justifyContent: 'center',
-  },
-  toggleSwitchActive: {
-    backgroundColor: '#5e5ce6',
-  },
-  toggleCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#ffffff',
-    transform: [{ translateX: 0 }],
-  },
-  toggleCircleActive: {
-    transform: [{ translateX: 16 }],
-  },
-  filtersScroll: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  filterBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f0f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    height: 36,
-  },
-  filterBtnActive: {
-    backgroundColor: '#5e5ce6',
-  },
-  filterBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#656475',
-    marginLeft: 4,
-  },
-  filterBtnTextActive: {
-    color: '#ffffff',
-  },
-  categoriesSection: {
-    marginBottom: 25,
-  },
-  categoriesTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  topsLargeCard: {
-    flex: 1,
-    height: 170,
-    backgroundColor: '#f5f4fd',
-    borderRadius: 20,
-    padding: 16,
-    justifyContent: 'space-between',
-    marginRight: 12,
-  },
-  hangerIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topsCardContent: {
-    marginTop: 'auto',
-  },
-  categoryCardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1a1a24',
-  },
-  categoryCardSub: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#8b8a9f',
-    marginTop: 2,
-  },
-  categoriesRightStack: {
-    flex: 1,
-    height: 170,
-    justifyContent: 'space-between',
-  },
-  stackedCategoryCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f5f4fd',
-    borderRadius: 16,
-    padding: 16,
-    height: 78,
-  },
-  stackedCardLeft: {
-    justifyContent: 'center',
-  },
-  categoriesBottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  smallCategoryCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f5f4fd',
-    borderRadius: 16,
-    paddingVertical: 12,
-    height: 52,
-    marginHorizontal: 4,
-  },
-  smallCardTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#1a1a24',
-    marginLeft: 6,
-  },
-  allItemsSection: {
-    marginBottom: 30,
-  },
-  allItemsHeading: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1a1a24',
-    marginBottom: 15,
-  },
-  allItemsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  itemGridCard: {
-    width: '31%',
-    aspectRatio: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 6,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  itemImageWrapper: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#fcfbfd',
-    position: 'relative',
-  },
-  itemImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  blueDotIndicator: {
-    position: 'absolute',
-    bottom: 6,
-    right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#5e5ce6',
-  },
-  fabButton: {
-    position: 'absolute',
-    bottom: 90,
-    right: 20,
-    zIndex: 10,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#5e5ce6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#5e5ce6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  fabButtonText: {
-    fontSize: 28,
-    color: '#ffffff',
-    fontWeight: '300',
-    marginTop: -2,
-  },
-  processingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(26, 26, 36, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  processingText: {
-    color: '#ffffff',
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  aiTabContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    paddingBottom: 40,
-  },
-  aiHeader: {
-    marginBottom: 20,
-  },
-  aiHeaderTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1a1a24',
-    marginBottom: 6,
-  },
-  aiHeaderSub: {
-    fontSize: 13,
-    color: '#656475',
-    fontWeight: '600',
-    lineHeight: 18,
-  },
-  aiChatArea: {
-    marginBottom: 25,
-  },
-  userBubble: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#eef0f5',
-    borderRadius: 18,
-    borderTopRightRadius: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    maxWidth: '85%',
-    marginBottom: 15,
-  },
-  userBubbleText: {
-    fontSize: 14,
-    color: '#1a1a24',
-    fontWeight: '600',
-    lineHeight: 19,
-  },
-  aiStylistHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  aiStylistIconBg: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#5e5ce6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  aiStylistHeaderLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#5e5ce6',
-    letterSpacing: 0.8,
-  },
-  suggestionBox: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#f0eff6',
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  breathabilityBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f7ff',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 15,
-  },
-  breathabilityTextContainer: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  breathabilityBannerTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#5e5ce6',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  breathabilityBannerBody: {
-    fontSize: 12,
-    color: '#4a4a5a',
-    fontWeight: '600',
-    lineHeight: 16,
-  },
-  recommendationText: {
-    fontSize: 14,
-    color: '#1a1a24',
-    fontWeight: '600',
-    lineHeight: 22,
-    marginBottom: 15,
-  },
-  boldSug: {
-    fontWeight: '800',
-    color: '#5e5ce6',
-  },
-  trendBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff5f0',
-    borderRadius: 16,
-    padding: 12,
-  },
-  trendBannerTextContainer: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  trendBannerTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#a86c43',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  trendBannerBody: {
-    fontSize: 12,
-    color: '#7a5a43',
-    fontWeight: '600',
-    lineHeight: 16,
-  },
-  fromWardrobeSection: {
-    marginBottom: 20,
-  },
-  fromWardrobeHeading: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#8b8a9f',
-    letterSpacing: 0.8,
-    marginBottom: 12,
-  },
-  wardrobePillsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  wardrobePillCard: {
-    width: '48%',
-  },
-  wardrobeCardImageBg: {
-    height: 120,
-    backgroundColor: '#f5f4fd',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-    marginBottom: 8,
-  },
-  wardrobeItemTag: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    zIndex: 1,
-  },
-  wardrobeItemTagText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#5e5ce6',
-  },
-  wardrobeItemTagBlue: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#e0f2fe',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    zIndex: 1,
-  },
-  wardrobeItemTagTextBlue: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#0284c7',
-  },
-  wardrobeItemImg: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  wardrobeItemName: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#656475',
-    textAlign: 'center',
-  },
-  actionPillsScroll: {
-    flexDirection: 'row',
-    marginBottom: 25,
-  },
-  actionPillOutline: {
-    borderWidth: 1,
-    borderColor: '#5e5ce630',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 10,
-    height: 38,
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  actionPillOutlineText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#5e5ce6',
-  },
-  bottomInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  inputInnerWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f0f6',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    height: 44,
-    marginRight: 10,
-  },
-  stylistInputField: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1a1a24',
-    marginLeft: 8,
-    paddingVertical: 0,
-  },
-  submitArrowBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#5e5ce6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

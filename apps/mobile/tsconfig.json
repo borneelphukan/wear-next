@@ -4,17 +4,28 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@wear-next/ui": ["../../packages/ui/src/index.ts"],
-      "@wear-next/ui/*": ["../../packages/ui/src/*"],
-      "@wear-next/shared": ["../../packages/shared/src/index.ts"],
-      "@wear-next/shared/*": ["../../packages/shared/src/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@wear-next/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@wear-next/ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@wear-next/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
+      "@wear-next/shared/*": [
+        "../../packages/shared/src/*"
+      ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }

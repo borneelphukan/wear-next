@@ -1,20 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Alert, StyleSheet, View, FlatList, ActivityIndicator, ScrollView, Image, Modal, TouchableOpacity } from "react-native";
 import {
-  HelperText,
-  Menu,
+  Alert,
+  View,
+  FlatList,
+  ActivityIndicator,
+  ScrollView,
+  Image,
+  Modal,
+  TouchableOpacity,
   TextInput,
-  TouchableRipple,
-  useTheme,
-  Portal,
-  Surface,
-  List,
-  Checkbox,
-  Chip,
-  Button,
   Text,
-  IconButton,
-} from "react-native-paper";
+} from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Calendar, DateData } from "react-native-calendars";
 import * as ImagePicker from "expo-image-picker";
@@ -59,23 +55,9 @@ type BottomDrawerProps = {
   isSubmitting?: boolean;
   children?: React.ReactNode;
 };
-const drawerInputTheme = {
-  colors: {
-    primary: '#5e5ce6',
-    outline: '#e8e7fc',
-    background: '#f8f7fc',
-    onSurfaceVariant: '#656475',
-    text: '#1a1a24',
-  },
-  roundness: 12,
-};
 
-const drawerInputStyle = {
-  backgroundColor: '#f8f7fc',
-  fontSize: 15,
-};
-
-const PaperFormDropdown = ({
+/* ─── Custom Dropdown ─── */
+const FormDropdown = ({
   label,
   items,
   selectedValue,
@@ -95,63 +77,70 @@ const PaperFormDropdown = ({
   const [visible, setVisible] = useState(false);
 
   return (
-    <View style={styles.inputContainer}>
-      <Menu
-        visible={visible}
-        onDismiss={() => setVisible(false)}
-        anchor={
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => !disabled && setVisible(true)}
-            disabled={disabled}
-            style={[
-              styles.dropdownInputBox,
-              error && { borderColor: '#ff3b30' }
-            ]}
-          >
-            <View style={styles.dropdownInputContent}>
-              {leftIcon && (
-                <MaterialCommunityIcons
-                  name={leftIcon as any}
-                  size={18}
-                  color="#5e5ce6"
-                  style={{ marginRight: 10 }}
-                />
-              )}
-              <View style={{ flex: 1 }}>
-                <Text style={styles.dropdownLabel}>{label}</Text>
-                <Text style={[styles.dropdownValue, !selectedValue && { color: '#a09fb1' }]}>
-                  {selectedValue || `Select ${label}`}
-                </Text>
-              </View>
-              <MaterialCommunityIcons
-                name="chevron-down"
-                size={18}
-                color="#656475"
-              />
-            </View>
-          </TouchableOpacity>
-        }
+    <View className="mb-3">
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => !disabled && setVisible(true)}
+        disabled={disabled}
+        className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${
+          error ? "border-red-500" : "border-border-brand"
+        } ${disabled ? "opacity-60" : ""}`}
       >
-        {items.map((item: string) => (
-          <Menu.Item
-            key={item}
-            title={item}
-            onPress={() => {
-              onSelect(item);
-              setVisible(false);
-            }}
+        {leftIcon && (
+          <MaterialCommunityIcons
+            name={leftIcon as any}
+            size={18}
+            color="#5e5ce6"
+            style={{ marginRight: 10 }}
           />
-        ))}
-      </Menu>
-      <HelperText type="error" visible={!!error}>
-        {error}
-      </HelperText>
+        )}
+        <View className="flex-1">
+          <Text className="text-[11px] font-bold text-text-muted">{label}</Text>
+          <Text className={`text-[14px] font-semibold ${selectedValue ? "text-text" : "text-text-faint"}`}>
+            {selectedValue || `Select ${label}`}
+          </Text>
+        </View>
+        <MaterialCommunityIcons name="chevron-down" size={18} color="#656475" />
+      </TouchableOpacity>
+
+      {error ? <Text className="text-red-500 text-xs mt-1 ml-1">{error}</Text> : null}
+
+      <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
+        <TouchableOpacity
+          activeOpacity={1}
+          className="flex-1 bg-[rgba(0,0,0,0.3)] justify-end"
+          onPress={() => setVisible(false)}
+        >
+          <View
+            className="bg-surface rounded-t-3xl p-4"
+            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 10 }}
+          >
+            <Text className="text-[16px] font-extrabold text-text mb-3 px-2">{label}</Text>
+            <ScrollView style={{ maxHeight: 300 }}>
+              {items.map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  className={`py-3 px-3 rounded-xl mb-1 ${selectedValue === item ? "bg-brand-light" : ""}`}
+                  onPress={() => {
+                    onSelect(item);
+                    setVisible(false);
+                  }}
+                >
+                  <Text className={`text-[15px] font-semibold ${selectedValue === item ? "text-brand" : "text-text"}`}>
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
 
-const PaperFormAutocomplete = ({
+/* ─── Custom Autocomplete ─── */
+const FormAutocomplete = ({
   label,
   value,
   onSelect,
@@ -159,7 +148,6 @@ const PaperFormAutocomplete = ({
   error,
   leftIcon,
   placeholder,
-  isLoading,
 }: {
   label: string;
   value: string;
@@ -168,91 +156,58 @@ const PaperFormAutocomplete = ({
   error?: string;
   leftIcon?: string;
   placeholder?: string;
-  isLoading?: boolean;
 }) => {
   const [visible, setVisible] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const theme = useTheme();
-
-  useEffect(() => {
-    if (value) {
-      setSuggestions(
-        items.filter((item) => item.toLowerCase().includes(value.toLowerCase()))
-      );
-    } else {
-      setSuggestions(items);
-    }
-  }, [value, items]);
+  const suggestions = useMemo(
+    () => (value ? items.filter((i) => i.toLowerCase().includes(value.toLowerCase())) : items),
+    [value, items]
+  );
 
   return (
-    <View style={styles.autocompleteContainer}>
-      <TextInput
-        mode="outlined"
-        label={label}
-        value={value}
-        placeholder={placeholder}
-        onChangeText={(text) => {
-          onSelect(text);
-          setVisible(true);
-        }}
-        onFocus={() => setVisible(true)}
-        onBlur={() => setTimeout(() => setVisible(false), 200)}
-        style={drawerInputStyle}
-        theme={drawerInputTheme}
-        error={!!error}
-        left={
-          leftIcon && (
-            <TextInput.Icon
-              icon={() => (
-                <MaterialCommunityIcons
-                  name={leftIcon as any}
-                  size={18}
-                  color="#5e5ce6"
-                />
-              )}
-            />
-          )
-        }
-        right={
-          isLoading ? (
-            <TextInput.Icon icon={() => <ActivityIndicator size="small" />} />
-          ) : (
-            <TextInput.Icon icon="menu-down" onPress={() => setVisible(!visible)} />
-          )
-        }
-      />
+    <View className="mb-3">
+      <View className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${error ? "border-red-500" : "border-border-brand"}`}>
+        {leftIcon && (
+          <MaterialCommunityIcons name={leftIcon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+        )}
+        <TextInput
+          className="flex-1 text-[15px] text-text"
+          placeholder={placeholder || label}
+          placeholderTextColor="#a09fb1"
+          value={value}
+          onChangeText={(text) => { onSelect(text); setVisible(true); }}
+          onFocus={() => setVisible(true)}
+          onBlur={() => setTimeout(() => setVisible(false), 200)}
+        />
+        <MaterialCommunityIcons name="menu-down" size={20} color="#656475" />
+      </View>
+      {error ? <Text className="text-red-500 text-xs mt-1 ml-1">{error}</Text> : null}
+
       {visible && suggestions.length > 0 && (
-        <Surface
-          style={[
-            styles.suggestionsSurface,
-            { backgroundColor: '#ffffff', borderColor: '#e3e1f5', borderWidth: 1 },
-          ]}
-          elevation={3}
+        <View
+          className="bg-surface border border-border-brand rounded-xl mt-1 overflow-hidden"
+          style={{ elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 }}
         >
           <FlatList
             data={suggestions}
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
-              <List.Item
-                title={item}
-                onPress={() => {
-                  onSelect(item);
-                  setVisible(false);
-                }}
-              />
+              <TouchableOpacity
+                className="py-3 px-4 border-b border-border"
+                onPress={() => { onSelect(item); setVisible(false); }}
+              >
+                <Text className="text-[15px] text-text font-semibold">{item}</Text>
+              </TouchableOpacity>
             )}
             keyboardShouldPersistTaps="handled"
             style={{ maxHeight: 200 }}
           />
-        </Surface>
+        </View>
       )}
-      <HelperText type="error" visible={!!error}>
-        {error}
-      </HelperText>
     </View>
   );
 };
 
+/* ─── Main BottomDrawer ─── */
 export const BottomDrawer = ({
   isVisible,
   onClose,
@@ -271,8 +226,6 @@ export const BottomDrawer = ({
   const [activeDateField, setActiveDateField] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState("");
 
-  const theme = useTheme();
-
   const isSubmitting = isSubmittingProp || isSubmittingInternal;
 
   useEffect(() => {
@@ -286,62 +239,41 @@ export const BottomDrawer = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
+        const next = { ...prev };
+        delete next[name];
+        return next;
       });
     }
   };
 
   const handleAddTag = (fieldName: string, tag: string) => {
     if (!tag.trim()) return;
-    const currentTags = Array.isArray(formData[fieldName])
-      ? formData[fieldName]
-      : [];
-    if (!currentTags.includes(tag.trim())) {
-      handleInputChange(fieldName, [...currentTags, tag.trim()]);
+    const current = Array.isArray(formData[fieldName]) ? formData[fieldName] : [];
+    if (!current.includes(tag.trim())) {
+      handleInputChange(fieldName, [...current, tag.trim()]);
     }
     setTagInput("");
   };
 
   const handleRemoveTag = (fieldName: string, tagToRemove: string) => {
-    const currentTags = Array.isArray(formData[fieldName])
-      ? formData[fieldName]
-      : [];
-    handleInputChange(
-      fieldName,
-      currentTags.filter((t: string) => t !== tagToRemove)
-    );
+    const current = Array.isArray(formData[fieldName]) ? formData[fieldName] : [];
+    handleInputChange(fieldName, current.filter((t: string) => t !== tagToRemove));
   };
 
-  const handleDynamicListChange = (
-    fieldName: string,
-    index: number,
-    subFieldName: string,
-    value: any
-  ) => {
-    const currentList = Array.isArray(formData[fieldName])
-      ? [...formData[fieldName]]
-      : [{}];
-    currentList[index] = { ...currentList[index], [subFieldName]: value };
-    handleInputChange(fieldName, currentList);
+  const handleDynamicListChange = (fieldName: string, index: number, subFieldName: string, value: any) => {
+    const current = Array.isArray(formData[fieldName]) ? [...formData[fieldName]] : [{}];
+    current[index] = { ...current[index], [subFieldName]: value };
+    handleInputChange(fieldName, current);
   };
 
   const handleAddDynamicListItem = (fieldName: string) => {
-    const currentList = Array.isArray(formData[fieldName])
-      ? [...formData[fieldName]]
-      : [];
-    handleInputChange(fieldName, [...currentList, {}]);
+    const current = Array.isArray(formData[fieldName]) ? [...formData[fieldName]] : [];
+    handleInputChange(fieldName, [...current, {}]);
   };
 
   const handleRemoveDynamicListItem = (fieldName: string, index: number) => {
-    const currentList = Array.isArray(formData[fieldName])
-      ? [...formData[fieldName]]
-      : [];
-    handleInputChange(
-      fieldName,
-      currentList.filter((_, i) => i !== index)
-    );
+    const current = Array.isArray(formData[fieldName]) ? [...formData[fieldName]] : [];
+    handleInputChange(fieldName, current.filter((_, i) => i !== index));
   };
 
   const validate = () => {
@@ -349,15 +281,10 @@ export const BottomDrawer = ({
     (fields || []).forEach((field) => {
       if (field.required && !String(formData[field.name] || "").trim()) {
         newErrors[field.name] = `${field.label} is required.`;
-      } else if (
-        field.type === "email" &&
-        formData[field.name] &&
-        !/\S+@\S+\.\S+/.test(formData[field.name])
-      ) {
+      } else if (field.type === "email" && formData[field.name] && !/\S+@\S+\.\S+/.test(formData[field.name])) {
         newErrors[field.name] = "Please enter a valid email address.";
       } else if (field.type === "phone" && formData[field.name]) {
-        const E164_REGEX = /^\+?[1-9]\d{9,14}$/;
-        if (!E164_REGEX.test(formData[field.name].replace(/\s/g, ""))) {
+        if (!/^\+?[1-9]\d{9,14}$/.test(formData[field.name].replace(/\s/g, ""))) {
           newErrors[field.name] = "Enter a valid phone number.";
         }
       }
@@ -368,10 +295,7 @@ export const BottomDrawer = ({
 
   const handleSubmit = async () => {
     if (!validate()) {
-      Alert.alert(
-        "Validation Error",
-        "Please fill all required fields correctly."
-      );
+      Alert.alert("Validation Error", "Please fill all required fields correctly.");
       return;
     }
     setIsSubmittingInternal(true);
@@ -385,346 +309,258 @@ export const BottomDrawer = ({
     }
   };
 
-  const renderField = useCallback((field: FormField, index: number, isHalf: boolean) => {
-    const containerStyle = isHalf ? styles.halfWidth : styles.fullWidth;
+  const renderField = useCallback(
+    (field: FormField, index: number, isHalf: boolean) => {
+      const containerClass = isHalf ? "w-[48%]" : "w-full";
 
-    if (field.type === "image") {
-      const selectedImage = formData[field.name];
+      /* ── Image ── */
+      if (field.type === "image") {
+        const selectedImage = formData[field.name];
 
-      const pickImage = async () => {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const pickImage = async () => {
+          const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (!granted) {
+            Alert.alert("Permission Required", "Permission to access camera roll is required!");
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+          });
+          if (!result.canceled) {
+            handleInputChange(field.name, result.assets[0].uri);
+          }
+        };
 
-        if (permissionResult.granted === false) {
-          Alert.alert("Permission Required", "Permission to access camera roll is required!");
-          return;
-        }
-
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.5,
-        });
-
-        if (!result.canceled) {
-          handleInputChange(field.name, result.assets[0].uri);
-        }
-      };
-
-      return (
-        <View key={field.name} style={[styles.imageUploadWrapper, containerStyle]}>
-          <Text style={styles.imageLabel}>{field.label}</Text>
-          <TouchableRipple onPress={pickImage} style={styles.imagePickerBtn}>
-            {selectedImage ? (
-              <Image source={{ uri: selectedImage }} style={styles.pickedImage} />
-            ) : (
-              <View style={styles.placeholderContainer}>
-                <MaterialCommunityIcons name="camera-plus-outline" size={32} color="#5e5ce6" />
-                <Text style={styles.placeholderText}>Select or Upload Image</Text>
-              </View>
-            )}
-          </TouchableRipple>
-          <HelperText type="error" visible={!!errors[field.name]}>
-            {errors[field.name]}
-          </HelperText>
-        </View>
-      );
-    }
-
-    if (field.type === "dynamic-list") {
-      const items = Array.isArray(formData[field.name])
-        ? formData[field.name]
-        : [{}];
-      return (
-        <View key={field.name} style={styles.fullWidth}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            {field.label}
-          </Text>
-          {items.map((item: any, itemIndex: number) => (
-            <Surface
-              key={`${field.name}-${itemIndex}`}
-              style={styles.dynamicListItem}
-              elevation={1}
+        return (
+          <View key={field.name} className={`${containerClass} mb-3`}>
+            <Text className="text-[13px] font-bold text-text-muted mb-2">{field.label}</Text>
+            <TouchableOpacity
+              onPress={pickImage}
+              className="h-[120px] bg-brand-light rounded-xl overflow-hidden justify-center items-center"
             >
-              <View style={styles.dynamicListHeader}>
-                <Text variant="labelLarge">
-                  {field.label} #{itemIndex + 1}
-                </Text>
-                {items.length > 1 && (
-                  <IconButton
-                    icon="close-circle"
-                    iconColor={theme.colors.error}
-                    size={20}
-                    onPress={() =>
-                      handleRemoveDynamicListItem(field.name, itemIndex)
-                    }
-                  />
-                )}
-              </View>
-              <View style={styles.dynamicListContent}>
-                {field.subFields?.map((subField) => {
-                  const subFieldName = subField.name;
-                  const handleSubInputChange = (val: any) =>
-                    handleDynamicListChange(
-                      field.name,
-                      itemIndex,
-                      subFieldName,
-                      val
-                    );
-
-                  const tempField: FormField = {
-                    ...subField,
-                    name: `${field.name}-${itemIndex}-${subFieldName}`,
-                  };
-
-                  return (
-                    <View
-                      key={tempField.name}
-                      style={subField.halfWidth ? styles.halfWidth : styles.fullWidth}
-                    >
-                      {subField.type === "dropdown" ? (
-                        <PaperFormDropdown
-                          label={subField.label}
-                          items={subField.items || []}
-                          selectedValue={item[subFieldName] || ""}
-                          onSelect={handleSubInputChange}
-                          leftIcon={subField.icon}
-                        />
-                      ) : (
-                        <TextInput
-                          mode="outlined"
-                          label={subField.label}
-                          value={String(item[subFieldName] || "")}
-                          onChangeText={handleSubInputChange}
-                          keyboardType={
-                            subField.type === "number" ? "numeric" : "default"
-                          }
-                          left={
-                            subField.icon && (
-                              <TextInput.Icon
-                                icon={() => (
-                                  <MaterialCommunityIcons
-                                    name={subField.icon as any}
-                                    size={18}
-                                    color="#5e5ce6"
-                                  />
-                                )}
-                              />
-                            )
-                          }
-                        />
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            </Surface>
-          ))}
-          <Button
-            mode="text"
-            onPress={() => handleAddDynamicListItem(field.name)}
-            icon="plus"
-            style={styles.addButton}
-          >
-            Add Another {field.label}
-          </Button>
-        </View>
-      );
-    }
-
-    if (field.type === "tags") {
-      const currentTags = Array.isArray(formData[field.name])
-        ? formData[field.name]
-        : [];
-      return (
-        <View key={field.name} style={containerStyle}>
-          <TextInput
-            mode="outlined"
-            label={field.label}
-            placeholder={field.placeholder || "Type and press add"}
-            value={tagInput}
-            onChangeText={setTagInput}
-            onSubmitEditing={() => handleAddTag(field.name, tagInput)}
-            style={drawerInputStyle}
-            theme={drawerInputTheme}
-            right={
-              <TextInput.Icon
-                icon="plus"
-                onPress={() => handleAddTag(field.name, tagInput)}
-              />
-            }
-          />
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 8,
-              marginTop: 8,
-              marginBottom: 12,
-            }}
-          >
-            {currentTags.map((tag: string) => (
-              <Chip
-                key={tag}
-                onClose={() => handleRemoveTag(field.name, tag)}
-                style={{ backgroundColor: "#f1f0fc" }}
-              >
-                {tag}
-              </Chip>
-            ))}
+              {selectedImage ? (
+                <Image source={{ uri: selectedImage }} className="w-full h-full" />
+              ) : (
+                <View className="items-center">
+                  <MaterialCommunityIcons name="camera-plus-outline" size={32} color="#5e5ce6" />
+                  <Text className="text-brand text-xs font-bold mt-2">Select or Upload Image</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {errors[field.name] ? (
+              <Text className="text-red-500 text-xs mt-1">{errors[field.name]}</Text>
+            ) : null}
           </View>
-        </View>
-      );
-    }
+        );
+      }
 
-    if (field.type === "dropdown" || field.type === "autocomplete") {
-      return (
-        <View key={field.name} style={containerStyle}>
-          {field.type === "dropdown" ? (
-            <PaperFormDropdown
-              label={field.label}
-              items={field.items || []}
-              selectedValue={formData[field.name] || ""}
-              onSelect={(val) => handleInputChange(field.name, val)}
-              error={errors[field.name]}
-              leftIcon={field.icon}
-              disabled={field.disabled}
-            />
-          ) : (
-            <PaperFormAutocomplete
-              label={field.label}
-              items={field.items || []}
-              value={formData[field.name] || ""}
-              onSelect={(val) => handleInputChange(field.name, val)}
-              error={errors[field.name]}
-              leftIcon={field.icon}
-              placeholder={field.placeholder}
-              isLoading={false}
-            />
-          )}
-        </View>
-      );
-    }
+      /* ── Dynamic List ── */
+      if (field.type === "dynamic-list") {
+        const items = Array.isArray(formData[field.name]) ? formData[field.name] : [{}];
+        return (
+          <View key={field.name} className="w-full mb-3">
+            <Text className="text-[15px] font-extrabold text-text mb-3">{field.label}</Text>
+            {items.map((item: any, itemIndex: number) => (
+              <View
+                key={`${field.name}-${itemIndex}`}
+                className="bg-bg border border-border-brand rounded-2xl p-3 mb-3"
+                style={{ elevation: 1 }}
+              >
+                <View className="flex-row justify-between items-center mb-3">
+                  <Text className="text-[14px] font-bold text-text">{field.label} #{itemIndex + 1}</Text>
+                  {items.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => handleRemoveDynamicListItem(field.name, itemIndex)}
+                      className="w-7 h-7 rounded-full bg-[#fee2e2] justify-center items-center"
+                    >
+                      <MaterialIcons name="close" size={16} color="#ef4444" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <View className="flex-row flex-wrap gap-2">
+                  {field.subFields?.map((subField) => {
+                    const handleSub = (val: any) =>
+                      handleDynamicListChange(field.name, itemIndex, subField.name, val);
+                    return (
+                      <View key={subField.name} className={subField.halfWidth ? "w-[48%]" : "w-full"}>
+                        {subField.type === "dropdown" ? (
+                          <FormDropdown
+                            label={subField.label}
+                            items={subField.items || []}
+                            selectedValue={item[subField.name] || ""}
+                            onSelect={handleSub}
+                            leftIcon={subField.icon}
+                          />
+                        ) : (
+                          <View className="flex-row items-center h-[48px] bg-surface border border-border-brand rounded-xl px-3 mb-2">
+                            {subField.icon && (
+                              <MaterialCommunityIcons name={subField.icon as any} size={16} color="#5e5ce6" style={{ marginRight: 8 }} />
+                            )}
+                            <TextInput
+                              className="flex-1 text-[14px] text-text"
+                              placeholder={subField.label}
+                              placeholderTextColor="#a09fb1"
+                              value={String(item[subField.name] || "")}
+                              onChangeText={handleSub}
+                              keyboardType={subField.type === "number" ? "numeric" : "default"}
+                            />
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
+            <TouchableOpacity
+              onPress={() => handleAddDynamicListItem(field.name)}
+              className="flex-row items-center justify-center py-2 px-4 rounded-xl border border-dashed border-brand-lighter"
+            >
+              <MaterialIcons name="add" size={16} color="#5e5ce6" />
+              <Text className="text-brand text-[14px] font-bold ml-1">Add Another {field.label}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      }
 
-    if (field.type === "checkbox") {
-      return (
-        <View
-          key={field.name}
-          style={[containerStyle, { marginBottom: 12, justifyContent: 'center' }]}
-        >
-          <Checkbox.Item
-            label={field.label}
-            status={formData[field.name] ? "checked" : "unchecked"}
-            onPress={() => handleInputChange(field.name, !formData[field.name])}
-            mode="android"
-            disabled={field.disabled}
-          />
-        </View>
-      );
-    }
-
-    if (field.type === "date") {
-      return (
-        <View key={field.name} style={containerStyle}>
-          <TouchableRipple
-            onPress={() => {
-              setActiveDateField(field.name);
-              setDatePickerVisible(true);
-            }}
-            disabled={field.disabled}
-          >
-            <View pointerEvents="none">
+      /* ── Tags ── */
+      if (field.type === "tags") {
+        const currentTags = Array.isArray(formData[field.name]) ? formData[field.name] : [];
+        return (
+          <View key={field.name} className={`${containerClass} mb-3`}>
+            <View className="flex-row items-center h-[52px] bg-bg border border-border-brand rounded-xl px-3">
               <TextInput
-                mode="outlined"
-                label={field.label}
-                value={formData[field.name] || ""}
-                placeholder="Select date"
-                editable={false}
-                disabled={field.disabled}
-                style={drawerInputStyle}
-                theme={drawerInputTheme}
-                error={!!errors[field.name]}
-                left={
-                  field.icon && (
-                    <TextInput.Icon
-                      icon={() => (
-                        <MaterialCommunityIcons
-                          name={field.icon as any}
-                          size={18}
-                          color="#5e5ce6"
-                        />
-                      )}
-                    />
-                  )
-                }
-                right={<TextInput.Icon icon="calendar" />}
+                className="flex-1 text-[15px] text-text"
+                placeholder={field.placeholder || "Type and press add"}
+                placeholderTextColor="#a09fb1"
+                value={tagInput}
+                onChangeText={setTagInput}
+                onSubmitEditing={() => handleAddTag(field.name, tagInput)}
               />
+              <TouchableOpacity onPress={() => handleAddTag(field.name, tagInput)}>
+                <MaterialIcons name="add" size={22} color="#5e5ce6" />
+              </TouchableOpacity>
             </View>
-          </TouchableRipple>
-          <HelperText type="error" visible={!!errors[field.name]}>
-            {errors[field.name]}
-          </HelperText>
+            <View className="flex-row flex-wrap gap-2 mt-2 mb-3">
+              {currentTags.map((tag: string) => (
+                <View key={tag} className="flex-row items-center bg-brand-light rounded-full px-3 py-1">
+                  <Text className="text-brand text-[13px] font-semibold">{tag}</Text>
+                  <TouchableOpacity onPress={() => handleRemoveTag(field.name, tag)} className="ml-2">
+                    <MaterialIcons name="close" size={14} color="#5e5ce6" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        );
+      }
+
+      /* ── Dropdown / Autocomplete ── */
+      if (field.type === "dropdown" || field.type === "autocomplete") {
+        return (
+          <View key={field.name} className={containerClass}>
+            {field.type === "dropdown" ? (
+              <FormDropdown
+                label={field.label}
+                items={field.items || []}
+                selectedValue={formData[field.name] || ""}
+                onSelect={(val) => handleInputChange(field.name, val)}
+                error={errors[field.name]}
+                leftIcon={field.icon}
+                disabled={field.disabled}
+              />
+            ) : (
+              <FormAutocomplete
+                label={field.label}
+                items={field.items || []}
+                value={formData[field.name] || ""}
+                onSelect={(val) => handleInputChange(field.name, val)}
+                error={errors[field.name]}
+                leftIcon={field.icon}
+                placeholder={field.placeholder}
+              />
+            )}
+          </View>
+        );
+      }
+
+      /* ── Checkbox ── */
+      if (field.type === "checkbox") {
+        const checked = !!formData[field.name];
+        return (
+          <View key={field.name} className={`${containerClass} mb-4 justify-center`}>
+            <TouchableOpacity
+              className="flex-row items-center gap-3"
+              onPress={() => !field.disabled && handleInputChange(field.name, !checked)}
+              disabled={field.disabled}
+            >
+              <View className={`w-6 h-6 rounded-md border-2 justify-center items-center ${checked ? "bg-brand border-brand" : "border-border-brand bg-bg"}`}>
+                {checked && <MaterialIcons name="check" size={16} color="#ffffff" />}
+              </View>
+              <Text className="text-[15px] font-semibold text-text">{field.label}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      }
+
+      /* ── Date ── */
+      if (field.type === "date") {
+        return (
+          <View key={field.name} className={`${containerClass} mb-3`}>
+            <TouchableOpacity
+              onPress={() => { setActiveDateField(field.name); setDatePickerVisible(true); }}
+              disabled={field.disabled}
+              className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}
+            >
+              {field.icon && (
+                <MaterialCommunityIcons name={field.icon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+              )}
+              <View className="flex-1">
+                <Text className="text-[11px] font-bold text-text-muted">{field.label}</Text>
+                <Text className={`text-[14px] font-semibold ${formData[field.name] ? "text-text" : "text-text-faint"}`}>
+                  {formData[field.name] || "Select date"}
+                </Text>
+              </View>
+              <MaterialIcons name="calendar-today" size={18} color="#656475" />
+            </TouchableOpacity>
+            {errors[field.name] ? <Text className="text-red-500 text-xs mt-1">{errors[field.name]}</Text> : null}
+          </View>
+        );
+      }
+
+      /* ── Default Text/Number/Email/Phone ── */
+      return (
+        <View key={field.name} className={`${containerClass} mb-3`}>
+          <View className={`flex-row items-center ${field.multiline ? "min-h-[52px] py-2" : "h-[52px]"} bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}>
+            {field.icon && (
+              <MaterialCommunityIcons name={field.icon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+            )}
+            <TextInput
+              className="flex-1 text-[15px] text-text"
+              placeholder={field.placeholder || field.label}
+              placeholderTextColor="#a09fb1"
+              value={String(formData[field.name] || "")}
+              onChangeText={(text) => handleInputChange(field.name, text)}
+              keyboardType={
+                field.type === "number" ? "numeric"
+                  : field.type === "phone" ? "phone-pad"
+                  : field.type === "email" ? "email-address"
+                  : field.keyboardType || "default"
+              }
+              multiline={field.multiline}
+              numberOfLines={field.numberOfLines || (field.multiline ? 4 : 1)}
+              editable={!field.disabled}
+            />
+          </View>
+          {errors[field.name] ? <Text className="text-red-500 text-xs mt-1">{errors[field.name]}</Text> : null}
         </View>
       );
-    }
-
-    return (
-      <View key={field.name} style={containerStyle}>
-        <TextInput
-          mode="outlined"
-          label={field.label}
-          placeholder={field.placeholder}
-          value={String(formData[field.name] || "")}
-          onChangeText={(text) => handleInputChange(field.name, text)}
-          error={!!errors[field.name]}
-          style={drawerInputStyle}
-          theme={drawerInputTheme}
-          keyboardType={
-            field.type === "number"
-              ? "numeric"
-              : field.type === "phone"
-              ? "phone-pad"
-              : field.type === "email"
-              ? "email-address"
-              : field.keyboardType || "default"
-          }
-          multiline={field.multiline}
-          numberOfLines={field.numberOfLines || (field.multiline ? 4 : 1)}
-          disabled={field.disabled}
-          left={
-            field.icon && (
-              <TextInput.Icon
-                icon={() => (
-                  <MaterialCommunityIcons
-                    name={field.icon as any}
-                    size={18}
-                    color="#5e5ce6"
-                  />
-                )}
-              />
-            )
-          }
-        />
-        <HelperText type="error" visible={!!errors[field.name]}>
-          {errors[field.name]}
-        </HelperText>
-      </View>
-    );
-  }, [
-    formData,
-    theme,
-    handleRemoveDynamicListItem,
-    handleDynamicListChange,
-    handleAddDynamicListItem,
-    tagInput,
-    setTagInput,
-    handleAddTag,
-    handleRemoveTag,
-    handleInputChange,
-    errors,
-    setActiveDateField,
-    setDatePickerVisible,
-  ]);
+    },
+    [formData, errors, tagInput, setTagInput, handleAddTag, handleRemoveTag, handleInputChange, setActiveDateField, setDatePickerVisible]
+  );
 
   const renderedFields = useMemo(() => {
     const rows: React.ReactNode[] = [];
@@ -736,7 +572,7 @@ export const BottomDrawer = ({
         if (currentRow.length === 2) {
           const rowData = [...currentRow];
           rows.push(
-            <View key={`row-${index}`} style={styles.row}>
+            <View key={`row-${index}`} className="flex-row justify-between">
               {rowData.map((item) => renderField(item.field, item.index, true))}
             </View>
           );
@@ -745,9 +581,9 @@ export const BottomDrawer = ({
       } else {
         if (currentRow.length === 1) {
           rows.push(
-            <View key={`row-single-${index}`} style={styles.row}>
+            <View key={`row-single-${index}`} className="flex-row justify-between">
               {renderField(currentRow[0].field, currentRow[0].index, true)}
-              <View style={styles.halfWidth} />
+              <View className="w-[48%]" />
             </View>
           );
           currentRow = [];
@@ -758,15 +594,15 @@ export const BottomDrawer = ({
 
     if (currentRow.length === 1) {
       rows.push(
-        <View key="row-last" style={styles.row}>
+        <View key="row-last" className="flex-row justify-between">
           {renderField(currentRow[0].field, currentRow[0].index, true)}
-          <View style={styles.halfWidth} />
+          <View className="w-[48%]" />
         </View>
       );
     }
 
     return rows;
-  }, [fields, formData, errors, theme, tagInput, renderField]);
+  }, [fields, formData, errors, tagInput, renderField]);
 
   const handleDayPress = (day: DateData) => {
     if (activeDateField) {
@@ -778,74 +614,71 @@ export const BottomDrawer = ({
 
   return (
     <>
-      <Modal
-        transparent
-        visible={isVisible}
-        animationType="slide"
-        onRequestClose={onClose}
-      >
-        <View style={styles.overlay}>
-          <TouchableOpacity activeOpacity={1} style={styles.backdrop} onPress={onClose} />
-          <View style={[styles.drawerModalContent, { backgroundColor: '#ffffff' }]}>
-            <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-              <View style={styles.drawerHeader}>
-                <Text style={styles.drawerTitle}>
-                  {title}
-                </Text>
-                <IconButton icon="close" iconColor="#1a1a24" size={24} onPress={onClose} />
+      <Modal transparent visible={isVisible} animationType="slide" onRequestClose={onClose}>
+        <View className="flex-1 justify-end">
+          {/* Backdrop */}
+          <TouchableOpacity activeOpacity={1} className="absolute inset-0 bg-[rgba(0,0,0,0.4)]" onPress={onClose} />
+
+          {/* Drawer */}
+          <View
+            className="bg-surface rounded-t-3xl"
+            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 12, maxHeight: '92%' }}
+          >
+            <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+              {/* Header */}
+              <View className="flex-row justify-between items-center mb-5">
+                <Text className="text-[18px] font-extrabold text-text">{title}</Text>
+                <TouchableOpacity
+                  onPress={onClose}
+                  className="w-8 h-8 rounded-full bg-brand-light justify-center items-center"
+                >
+                  <MaterialIcons name="close" size={20} color="#1a1a24" />
+                </TouchableOpacity>
               </View>
-              <View style={styles.formContainer}>
-                {renderedFields}
-                {children}
-              </View>
-              <Button
-                mode="contained"
+
+              {/* Form Fields */}
+              <View>{renderedFields}</View>
+              {children}
+
+              {/* Submit Button */}
+              <TouchableOpacity
                 onPress={handleSubmit}
-                loading={isSubmitting}
                 disabled={isSubmitting}
-                buttonColor="#5e5ce6"
-                textColor="#ffffff"
-                style={styles.submitBtn}
+                className={`w-full h-[52px] rounded-full justify-center items-center mt-4 ${isSubmitting ? "opacity-60" : ""} bg-brand`}
+                style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 }}
               >
-                {submitButtonText}
-              </Button>
+                {isSubmitting ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text className="text-white text-base font-bold">{submitButtonText}</Text>
+                )}
+              </TouchableOpacity>
             </ScrollView>
           </View>
         </View>
       </Modal>
 
-      <Modal
-        transparent
-        visible={isDatePickerVisible}
-        animationType="fade"
-        onRequestClose={() => setDatePickerVisible(false)}
-      >
-        <View style={styles.pickerOverlay}>
-          <TouchableOpacity activeOpacity={1} style={styles.backdrop} onPress={() => setDatePickerVisible(false)} />
-          <View style={[styles.dateModalContent, { backgroundColor: '#ffffff' }]}>
+      {/* Date Picker Modal */}
+      <Modal transparent visible={isDatePickerVisible} animationType="slide" onRequestClose={() => setDatePickerVisible(false)}>
+        <View className="flex-1 justify-end">
+          <TouchableOpacity activeOpacity={1} className="absolute inset-0 bg-[rgba(0,0,0,0.4)]" onPress={() => setDatePickerVisible(false)} />
+          <View className="bg-surface rounded-t-3xl p-5">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-[17px] font-extrabold text-text">Select Date</Text>
+              <TouchableOpacity onPress={() => setDatePickerVisible(false)}>
+                <MaterialIcons name="close" size={22} color="#656475" />
+              </TouchableOpacity>
+            </View>
             <Calendar
               onDayPress={handleDayPress}
-              markedDates={
-                activeDateField && formData[activeDateField]
-                  ? {
-                      [formData[activeDateField]]: {
-                        selected: true,
-                        disableTouchEvent: true,
-                      },
-                    }
-                  : {}
+              markedDates={activeDateField && formData[activeDateField]
+                ? { [formData[activeDateField]]: { selected: true, selectedColor: '#5e5ce6' } }
+                : {}
               }
               theme={{
-                backgroundColor: '#ffffff',
-                calendarBackground: '#ffffff',
-                textSectionTitleColor: '#656475',
                 selectedDayBackgroundColor: '#5e5ce6',
-                selectedDayTextColor: '#ffffff',
                 todayTextColor: '#5e5ce6',
-                dayTextColor: '#1a1a24',
-                textDisabledColor: '#8b8a9f',
                 arrowColor: '#5e5ce6',
-                monthTextColor: '#1a1a24',
               }}
             />
           </View>
@@ -854,145 +687,5 @@ export const BottomDrawer = ({
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(26, 26, 36, 0.4)",
-  },
-  pickerOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(26, 26, 36, 0.4)",
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  formContainer: { gap: 12, marginBottom: 16 },
-  inputContainer: { marginBottom: 4 },
-  autocompleteContainer: { position: "relative", marginBottom: 4 },
-  suggestionsSurface: {
-    position: "absolute",
-    top: 54,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    borderRadius: 4,
-    maxHeight: 200,
-  },
-  row: { flexDirection: "row", gap: 16 },
-  halfWidth: { flex: 1 },
-  fullWidth: { width: "100%" },
-  dateModalContent: { margin: 20, borderRadius: 16 },
-  drawerModalContent: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: "85%",
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  scrollContainer: { paddingBottom: 24 },
-  drawerHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  drawerTitle: { fontSize: 22, fontWeight: "900", color: "#1a1a24" },
-  submitBtn: { marginTop: 12, borderRadius: 25, paddingVertical: 6 },
-  addButton: { alignSelf: "flex-start", marginTop: 8 },
-  sectionTitle: { marginTop: 16, marginBottom: 8, fontWeight: "bold" },
-  dynamicListItem: {
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: "rgba(0,0,0,0.02)",
-  },
-  dynamicListHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  dynamicListContent: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  dropdownInputBox: {
-    backgroundColor: '#f8f7fc',
-    borderWidth: 1,
-    borderColor: '#e8e7fc',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    height: 54,
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  dropdownInputContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dropdownLabel: {
-    fontSize: 10,
-    color: '#656475',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  dropdownValue: {
-    fontSize: 14,
-    color: '#1a1a24',
-    fontWeight: '600',
-  },
-  // Image upload custom styles
-  imageUploadWrapper: {
-    marginBottom: 10,
-  },
-  imageLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#656475",
-    marginBottom: 8,
-  },
-  imagePickerBtn: {
-    width: "100%",
-    height: 150,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#e3e1f5",
-    backgroundColor: "#f1f0fc",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  pickedImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  placeholderContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  placeholderText: {
-    marginTop: 8,
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#5e5ce6",
-  },
-});
 
 export default BottomDrawer;

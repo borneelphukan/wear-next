@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Dimensions,
-} from 'react-native';
+import { Modal, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface ConfirmationModalProps {
@@ -39,21 +32,24 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        {/* Backdrop click to close */}
+      {/* Backdrop */}
+      <View className="flex-1 justify-center items-center bg-[rgba(26,26,36,0.6)]">
         <TouchableOpacity
           activeOpacity={1}
-          style={styles.backdrop}
+          className="absolute inset-0"
           onPress={onClose}
         />
 
-        <View style={styles.modalCard}>
-          {/* Header Icon */}
+        {/* Card */}
+        <View
+          className="w-[85%] max-w-[340px] bg-surface rounded-3xl p-6 items-center"
+          style={{ shadowColor: '#1a1a24', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.15, shadowRadius: 20, elevation: 8 }}
+        >
+          {/* Icon */}
           <View
-            style={[
-              styles.iconWrapper,
-              isDestructive ? styles.iconWrapperDestructive : styles.iconWrapperStandard,
-            ]}
+            className={`w-[60px] h-[60px] rounded-full justify-center items-center mb-4 ${
+              isDestructive ? 'bg-[#ffeef0]' : 'bg-brand-light'
+            }`}
           >
             <MaterialCommunityIcons
               name={iconName}
@@ -63,17 +59,17 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           </View>
 
           {/* Content */}
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+          <Text className="text-[18px] font-extrabold text-text mb-2 text-center">{title}</Text>
+          <Text className="text-[13px] font-semibold text-text-muted leading-5 text-center mb-6">{message}</Text>
 
           {/* Actions */}
-          <View style={styles.actionsRow}>
+          <View className="flex-row gap-3 w-full">
             <TouchableOpacity
               onPress={onClose}
-              style={styles.cancelBtn}
               activeOpacity={0.8}
+              className="flex-1 h-11 rounded-full border-[1.5px] border-border-brand bg-surface justify-center items-center"
             >
-              <Text style={styles.cancelBtnText}>{cancelText}</Text>
+              <Text className="text-[13px] font-extrabold text-text-muted">{cancelText}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -81,13 +77,12 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 onConfirm();
                 onClose();
               }}
-              style={[
-                styles.confirmBtn,
-                isDestructive ? styles.confirmBtnDestructive : styles.confirmBtnStandard,
-              ]}
               activeOpacity={0.8}
+              className={`flex-1 h-11 rounded-full justify-center items-center ${
+                isDestructive ? 'bg-[#ff4d4f]' : 'bg-brand'
+              }`}
             >
-              <Text style={styles.confirmBtnText}>{confirmText}</Text>
+              <Text className="text-[13px] font-extrabold text-white">{confirmText}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -95,96 +90,5 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(26, 26, 36, 0.6)',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  modalCard: {
-    width: Math.min(Dimensions.get('window').width * 0.85, 340),
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#1a1a24',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  iconWrapper: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  iconWrapperStandard: {
-    backgroundColor: '#f1f0fc',
-  },
-  iconWrapperDestructive: {
-    backgroundColor: '#ffeef0',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1a1a24',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  message: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#656475',
-    lineHeight: 20,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    width: '100%',
-  },
-  cancelBtn: {
-    flex: 1,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: '#e3e1f5',
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelBtnText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#656475',
-  },
-  confirmBtn: {
-    flex: 1,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmBtnStandard: {
-    backgroundColor: '#5e5ce6',
-  },
-  confirmBtnDestructive: {
-    backgroundColor: '#ff4d4f',
-  },
-  confirmBtnText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#ffffff',
-  },
-});
 
 export default ConfirmationModal;

@@ -1,22 +1,11 @@
 import * as React from "react";
-
-const Spinner = ({ className = "" }: { className?: string }) => (
-  <svg 
-    className={`animate-spin h-4 w-4 ${className}`} 
-    xmlns="http://www.w3.org/2000/svg" 
-    fill="none" 
-    viewBox="0 0 24 24"
-  >
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-  </svg>
-);
+import { TouchableOpacity, Text, View, ActivityIndicator, TouchableOpacityProps } from "react-native";
 
 export type ButtonVariant = 'primary' | 'success' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 export type ButtonSize = 'md' | 'sm' | 'lg' | 'icon';
 export type ButtonShape = 'default' | 'circle';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends TouchableOpacityProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   shape?: ButtonShape;
@@ -27,11 +16,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   };
   label?: string;
   asChild?: boolean;
-  href?: string;
-  target?: string;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
+const Button = React.forwardRef<React.ElementRef<typeof TouchableOpacity>, ButtonProps>(({
   className = "",
   variant = "primary",
   size = "md",
@@ -41,28 +28,45 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   asChild = false,
   label,
   children,
-  href,
+  disabled,
   ...props
 }, ref) => {
-  const isEffectivelyDisabled = isLoading || props.disabled;
+  const isEffectivelyDisabled = isLoading || disabled;
   const hasContent = !!label || !!children;
   const isIconOnly = size === "icon" || (!hasContent && !!(icon?.left || icon?.right));
 
   const variantClasses: Record<ButtonVariant, string> = {
-    primary: "text-white bg-blue-500 hover:bg-blue-600",
-    success: "text-white bg-green-500 hover:bg-green-600",
-    destructive: "text-white bg-red-500 hover:bg-red-600",
-    outline: "text-gray-700 border border-gray-300 hover:bg-gray-50",
-    secondary: "text-white bg-gray-500 hover:bg-gray-600",
-    ghost: "text-gray-700 hover:bg-gray-100",
-    link: "text-blue-500 p-0 rounded-none hover:underline",
+    primary: "bg-blue-500",
+    success: "bg-green-500",
+    destructive: "bg-red-500",
+    outline: "bg-transparent border border-gray-300",
+    secondary: "bg-gray-500",
+    ghost: "bg-transparent",
+    link: "bg-transparent p-0",
+  };
+
+  const textClasses: Record<ButtonVariant, string> = {
+    primary: "text-white",
+    success: "text-white",
+    destructive: "text-white",
+    outline: "text-gray-700",
+    secondary: "text-white",
+    ghost: "text-gray-700",
+    link: "text-blue-500 underline",
   };
 
   const sizeClasses: Record<ButtonSize, string> = {
-    md: "py-2 px-6",
-    sm: "py-1 px-3 text-sm",
-    lg: "py-3 px-8 text-lg",
-    icon: "h-9 w-9 p-2",
+    md: "py-3 px-6",
+    sm: "py-2 px-4",
+    lg: "py-4 px-8",
+    icon: "h-11 w-11 p-2",
+  };
+
+  const textSizeClasses: Record<ButtonSize, string> = {
+    md: "text-base",
+    sm: "text-sm",
+    lg: "text-lg",
+    icon: "text-base",
   };
 
   const shapeClasses: Record<ButtonShape, string> = {
@@ -70,7 +74,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     circle: "rounded-full",
   };
 
-  const baseClasses = "relative inline-flex items-center justify-center gap-2 h-fit whitespace-nowrap text-base font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shrink-0 cursor-pointer ease-out";
+  const baseClasses = "flex-row items-center justify-center shrink-0";
 
   const combinedClassName = `
     ${baseClasses}
@@ -78,43 +82,38 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     ${sizeClasses[size]}
     ${shapeClasses[shape]}
     ${isIconOnly ? "aspect-square" : ""}
+    ${isEffectivelyDisabled ? "opacity-50" : "opacity-100"}
     ${className}
   `.trim().replace(/\s+/g, ' ');
 
   const content = (
-    <div className={`flex items-center justify-center gap-2 transition-opacity duration-200 ${isLoading ? "opacity-0" : ""}`}>
+    <View className={`flex-row items-center justify-center gap-2 ${isLoading ? "opacity-0" : ""}`}>
       {icon?.left}
-      {isIconOnly ? children : label || children}
+      {!isIconOnly && (
+        <Text className={`font-semibold ${textClasses[variant]} ${textSizeClasses[size]}`}>
+          {label || children}
+        </Text>
+      )}
+      {isIconOnly && children}
       {icon?.right}
-    </div>
+    </View>
   );
 
-  if (href) {
-    return (
-      <a
-        href={href}
-        className={combinedClassName}
-        {...props as any}
-      >
-        {content}
-      </a>
-    );
-  }
-
   return (
-    <button
+    <TouchableOpacity
       ref={ref}
       className={combinedClassName}
       disabled={isEffectivelyDisabled}
+      activeOpacity={0.8}
       {...props}
     >
       {content}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Spinner />
-        </div>
+        <View className="absolute inset-0 items-center justify-center">
+          <ActivityIndicator color={variant === 'outline' || variant === 'ghost' ? '#374151' : '#ffffff'} />
+        </View>
       )}
-    </button>
+    </TouchableOpacity>
   );
 });
 

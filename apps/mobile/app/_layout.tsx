@@ -1,7 +1,7 @@
+import "../global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { PaperProvider } from "react-native-paper";
 
 export const unstable_settings = {
   initialRouteName: "index",
@@ -9,7 +9,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   return (
-    <PaperProvider>
+    <>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -20,6 +20,6 @@ export default function RootLayout() {
         <Stack.Screen name="dashboard" />
       </Stack>
       <StatusBar style="light" />
-    </PaperProvider>
+    </>
   );
 }
