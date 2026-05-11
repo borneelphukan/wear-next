@@ -45,7 +45,7 @@ export type FormField = {
   numberOfLines?: number;
   keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
   disabled?: boolean;
-  subFields?: FormField[]; // For dynamic-list
+  subFields?: FormField[];
 };
 
 type BottomDrawerProps = {
@@ -58,6 +58,21 @@ type BottomDrawerProps = {
   submitButtonText?: string;
   isSubmitting?: boolean;
   children?: React.ReactNode;
+};
+const drawerInputTheme = {
+  colors: {
+    primary: '#5e5ce6',
+    outline: '#e8e7fc',
+    background: '#f8f7fc',
+    onSurfaceVariant: '#656475',
+    text: '#1a1a24',
+  },
+  roundness: 12,
+};
+
+const drawerInputStyle = {
+  backgroundColor: '#f8f7fc',
+  fontSize: 15,
 };
 
 const PaperFormDropdown = ({
@@ -78,7 +93,6 @@ const PaperFormDropdown = ({
   disabled?: boolean;
 }) => {
   const [visible, setVisible] = useState(false);
-  const theme = useTheme();
 
   return (
     <View style={styles.inputContainer}>
@@ -86,46 +100,37 @@ const PaperFormDropdown = ({
         visible={visible}
         onDismiss={() => setVisible(false)}
         anchor={
-          <TouchableRipple
+          <TouchableOpacity
+            activeOpacity={0.7}
             onPress={() => !disabled && setVisible(true)}
             disabled={disabled}
+            style={[
+              styles.dropdownInputBox,
+              error && { borderColor: '#ff3b30' }
+            ]}
           >
-            <View pointerEvents="none">
-              <TextInput
-                mode="outlined"
-                label={label}
-                value={selectedValue}
-                editable={false}
-                disabled={disabled}
-                theme={{ colors: { primary: '#5e5ce6', outline: '#e3e1f5' } }}
-                left={
-                  leftIcon && (
-                    <TextInput.Icon
-                      icon={() => (
-                        <MaterialCommunityIcons
-                          name={leftIcon as any}
-                          size={18}
-                          color="#5e5ce6"
-                        />
-                      )}
-                    />
-                  )
-                }
-                right={
-                  <TextInput.Icon
-                    icon={() => (
-                      <MaterialCommunityIcons
-                        name="chevron-down"
-                        size={16}
-                        color="#656475"
-                      />
-                    )}
-                  />
-                }
-                error={!!error}
+            <View style={styles.dropdownInputContent}>
+              {leftIcon && (
+                <MaterialCommunityIcons
+                  name={leftIcon as any}
+                  size={18}
+                  color="#5e5ce6"
+                  style={{ marginRight: 10 }}
+                />
+              )}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.dropdownLabel}>{label}</Text>
+                <Text style={[styles.dropdownValue, !selectedValue && { color: '#a09fb1' }]}>
+                  {selectedValue || `Select ${label}`}
+                </Text>
+              </View>
+              <MaterialCommunityIcons
+                name="chevron-down"
+                size={18}
+                color="#656475"
               />
             </View>
-          </TouchableRipple>
+          </TouchableOpacity>
         }
       >
         {items.map((item: string) => (
@@ -192,7 +197,8 @@ const PaperFormAutocomplete = ({
         }}
         onFocus={() => setVisible(true)}
         onBlur={() => setTimeout(() => setVisible(false), 200)}
-        theme={{ colors: { primary: '#5e5ce6', outline: '#e3e1f5' } }}
+        style={drawerInputStyle}
+        theme={drawerInputTheme}
         error={!!error}
         left={
           leftIcon && (
@@ -539,7 +545,8 @@ export const BottomDrawer = ({
             value={tagInput}
             onChangeText={setTagInput}
             onSubmitEditing={() => handleAddTag(field.name, tagInput)}
-            theme={{ colors: { primary: '#5e5ce6', outline: '#e3e1f5' } }}
+            style={drawerInputStyle}
+            theme={drawerInputTheme}
             right={
               <TextInput.Icon
                 icon="plus"
@@ -634,7 +641,8 @@ export const BottomDrawer = ({
                 placeholder="Select date"
                 editable={false}
                 disabled={field.disabled}
-                theme={{ colors: { primary: '#5e5ce6', outline: '#e3e1f5' } }}
+                style={drawerInputStyle}
+                theme={drawerInputTheme}
                 error={!!errors[field.name]}
                 left={
                   field.icon && (
@@ -669,7 +677,8 @@ export const BottomDrawer = ({
           value={String(formData[field.name] || "")}
           onChangeText={(text) => handleInputChange(field.name, text)}
           error={!!errors[field.name]}
-          theme={{ colors: { primary: '#5e5ce6', outline: '#e3e1f5' } }}
+          style={drawerInputStyle}
+          theme={drawerInputTheme}
           keyboardType={
             field.type === "number"
               ? "numeric"
@@ -920,6 +929,34 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 12,
   },
+  dropdownInputBox: {
+    backgroundColor: '#f8f7fc',
+    borderWidth: 1,
+    borderColor: '#e8e7fc',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    height: 54,
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  dropdownInputContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dropdownLabel: {
+    fontSize: 10,
+    color: '#656475',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  dropdownValue: {
+    fontSize: 14,
+    color: '#1a1a24',
+    fontWeight: '600',
+  },
   // Image upload custom styles
   imageUploadWrapper: {
     marginBottom: 10,
@@ -936,7 +973,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderColor: "#e3e1f5",
-    borderStyle: "dashed",
     backgroundColor: "#f1f0fc",
     alignItems: "center",
     justifyContent: "center",

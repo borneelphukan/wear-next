@@ -20,4 +20,9 @@ export class AiController {
       body.weatherData,
     );
   }
+
+  @Post('analyze-apparel')
+  async analyzeApparel(@Body() body: { image: string }) {
+    return this.aiService.analyzeApparel(body.image);
+  }
 }

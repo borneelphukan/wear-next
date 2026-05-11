@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Dimensions, Image, Platform, TextInput, Animated } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Dimensions, Image, Platform, TextInput, Animated, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
 import axiosInstance from '../api/axiosInstance';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { HomeTab } from '../components/tabs/HomeTab';
 import { WardrobeTab } from '../components/tabs/WardrobeTab';
 import { CalendarTab } from '../components/tabs/CalendarTab';
@@ -42,7 +43,28 @@ const getTimeGreeting = (): string => {
   return 'Good Evening';
 };
 
-const { width } = Dimensions.get('window');
+/** Generate a dynamic AI statement based on weather and time */
+const getAiStatement = (temp: number | null, code: number): string => {
+  const cond = getWeatherCondition(code).toLowerCase();
+  const isClear = isSunny(code);
+  
+  let recommendation = '';
+  if (temp === null) {
+    recommendation = 'Synthesizing weather data to optimize your style palette.';
+  } else if (cond.includes('rain') || cond.includes('shower') || cond.includes('drizzle') || cond.includes('thunder')) {
+    recommendation = `With ${cond} expected, reach for protective layers and waterproof elements.`;
+  } else if (temp < 15) {
+    recommendation = `It feels quite crisp at ${temp}°C. High time for comforting knits and insulated jackets.`;
+  } else if (temp > 26) {
+    recommendation = `Heating up to ${temp}°C! Prioritize breathable linens and airy silhouettes.`;
+  } else if (isClear) {
+    recommendation = `Clear, brilliant conditions ahead. A sharp, clean aesthetic will stand out nicely.`;
+  } else {
+    recommendation = `Balanced ${cond} weather is perfect for comfortable, smart-casual layering.`;
+  }
+
+  return recommendation;
+};
 
 import {
   MenuIcon,
@@ -69,7 +91,6 @@ interface OutfitData {
   shoes: string;
   styleTip: string;
   nextUp: string;
-  subtext: string;
 }
 
 const outfitConfig: Record<EventKey, OutfitData> = {
@@ -81,7 +102,6 @@ const outfitConfig: Record<EventKey, OutfitData> = {
     shoes: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=300&q=80',
     styleTip: "Roll the sleeves once for a more relaxed 'Mumbai Creative' vibe.",
     nextUp: "Dinner Date at 8:00 PM. Needs a layer change.",
-    subtext: 'Perfect weather for lightweight cotton or linens today.',
   },
   'Gym': {
     title: 'Active Performance',
@@ -91,7 +111,6 @@ const outfitConfig: Record<EventKey, OutfitData> = {
     shoes: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80',
     styleTip: 'Lightweight breathable fabrics will keep you cool during intense training.',
     nextUp: 'Office at 11:00 AM. Prepare your formal changes.',
-    subtext: 'Warm but pleasant outside. Ideal for a high-energy workout.',
   },
   'Dinner Date': {
     title: 'Elegant Date Night',
@@ -101,7 +120,6 @@ const outfitConfig: Record<EventKey, OutfitData> = {
     shoes: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=300&q=80',
     styleTip: 'Layer with a structured blazer and pair with minimalist silver accessories.',
     nextUp: 'Night out with friends. Keep it casual and stylish.',
-    subtext: 'Cool evening breeze makes it perfect for a layered blazer look.',
   },
 };
 
@@ -144,6 +162,8 @@ export default function DashboardScreen() {
   const [ethnicOnly, setEthnicOnly] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'color' | 'material' | 'season'>('all');
   const [isAddDrawerVisible, setIsAddDrawerVisible] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [addDrawerInitialValues, setAddDrawerInitialValues] = useState<Record<string, any>>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const wardrobeFields: FormField[] = [
@@ -167,14 +187,147 @@ export default function DashboardScreen() {
     }
   };
 
-  // AI Assistant state
+  const handleLaunchOutfitCamera = async () => {
+    if (Platform.OS === 'web') {
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          quality: 0.8,
+        });
+        if (!result.canceled) {
+          processCapturedPhoto(result);
+        } else {
+          setAddDrawerInitialValues({});
+          setIsAddDrawerVisible(true);
+        }
+      } catch (err) {
+        console.error('Error selecting image on web:', err);
+        setAddDrawerInitialValues({});
+        setIsAddDrawerVisible(true);
+      }
+      return;
+    }
+
+    try {
+      Alert.alert(
+        'Add New Apparel',
+        'Choose how you would like to select your garment image:',
+        [
+          {
+            text: 'Take Photo (Camera)',
+            onPress: async () => {
+              try {
+                const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                if (status !== 'granted') {
+                  Alert.alert('Permission Denied', 'Camera permissions are required. Opening manual drawer.');
+                  setAddDrawerInitialValues({});
+                  setIsAddDrawerVisible(true);
+                  return;
+                }
+                const result = await ImagePicker.launchCameraAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                  allowsEditing: true,
+                  quality: 0.8,
+                });
+                if (!result.canceled) {
+                  processCapturedPhoto(result);
+                } else {
+                  setAddDrawerInitialValues({});
+                  setIsAddDrawerVisible(true);
+                }
+              } catch (err) {
+                console.warn('Camera launch failed:', err);
+                setAddDrawerInitialValues({});
+                setIsAddDrawerVisible(true);
+              }
+            }
+          },
+          {
+            text: 'Choose from Library',
+            onPress: async () => {
+              try {
+                const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (status !== 'granted') {
+                  Alert.alert('Permission Denied', 'Media library permissions are required. Opening manual drawer.');
+                  setAddDrawerInitialValues({});
+                  setIsAddDrawerVisible(true);
+                  return;
+                }
+                const result = await ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                  allowsEditing: true,
+                  quality: 0.8,
+                });
+                if (!result.canceled) {
+                  processCapturedPhoto(result);
+                } else {
+                  setAddDrawerInitialValues({});
+                  setIsAddDrawerVisible(true);
+                }
+              } catch (err) {
+                console.warn('Library launch failed:', err);
+                setAddDrawerInitialValues({});
+                setIsAddDrawerVisible(true);
+              }
+            }
+          },
+          {
+            text: 'Add Manually',
+            onPress: () => {
+              setAddDrawerInitialValues({});
+              setIsAddDrawerVisible(true);
+            }
+          }
+        ]
+      );
+    } catch (e) {
+      console.warn('Alert.alert failed, falling back to manual drawer directly:', e);
+      setAddDrawerInitialValues({});
+      setIsAddDrawerVisible(true);
+    }
+  };
+
+  const processCapturedPhoto = async (result: ImagePicker.ImagePickerResult) => {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const photoUri = result.assets[0].uri;
+      setIsProcessingImage(true);
+      
+      try {
+        const base64 = await FileSystem.readAsStringAsync(photoUri, {
+          encoding: 'base64',
+        });
+
+        const response = await axiosInstance.post('/ai/analyze-apparel', { image: base64 });
+        const data = response.data || {};
+
+        setIsProcessingImage(false);
+        setAddDrawerInitialValues({
+          photo: photoUri,
+          apparel_name: data.apparel_name || 'My Apparel',
+          type: data.type || 'Tops',
+          material: data.material || 'Cotton',
+          color: data.color || 'Black',
+          season: data.season || 'Summer',
+          event: data.event || 'Casual',
+        });
+        setIsAddDrawerVisible(true);
+      } catch (err) {
+        console.warn('AI apparel auto-tagging failed, falling back to manual entry:', err);
+        setIsProcessingImage(false);
+        setAddDrawerInitialValues({ photo: photoUri });
+        setIsAddDrawerVisible(true);
+      }
+    }
+  };
+
   const [aiQuery, setAiQuery] = useState('');
 
-  // Weather state
   const [temperature, setTemperature] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number>(0);
   const [cityName, setCityName] = useState<string>('');
   const [weatherLoading, setWeatherLoading] = useState(true);
+  const [aiStatement, setAiStatement] = useState<string>('');
 
   useEffect(() => {
     const loadSession = async () => {
@@ -192,45 +345,109 @@ export default function DashboardScreen() {
     loadSession();
   }, []);
 
-  // Fetch weather from Open-Meteo based on device location
+  // Fetch weather & cached AI styling insight once per hour
   useEffect(() => {
-    const fetchWeather = async () => {
+    const fetchDashboardData = async () => {
       try {
-        // Request location permission
+        const now = new Date();
+        // Construct a cache key specific to the current calendar date and natural clock hour
+        const currentHourKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
+
+        // 1. Check AsyncStorage for existing dashboard cache
+        const cachedData = await AsyncStorage.getItem('dashboard_data_cache');
+        if (cachedData) {
+          try {
+            const parsedCache = JSON.parse(cachedData);
+            if (parsedCache && parsedCache.hourKey === currentHourKey) {
+              // Cache HIT: Same natural hour. Reuse all values and skip expensive API fetches
+              setTemperature(parsedCache.temp);
+              setWeatherCode(parsedCache.code);
+              setCityName(parsedCache.city);
+              setAiStatement(parsedCache.statement);
+              setWeatherLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.warn('Cache parsing failed, refetching data...');
+          }
+        }
+
+        // Cache MISS/EXPIRED: Perform fresh fetches
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          console.warn('Location permission denied — using defaults');
-          setWeatherLoading(false);
-          return;
+        
+        let latitude: number | null = null;
+        let longitude: number | null = null;
+        let finalCity = '';
+
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          latitude = loc.coords.latitude;
+          longitude = loc.coords.longitude;
+
+          const reverseGeo = await Location.reverseGeocodeAsync({ latitude, longitude });
+          if (reverseGeo.length > 0) {
+            finalCity = reverseGeo[0].city || reverseGeo[0].region || '';
+            setCityName(finalCity);
+          }
+        } else {
+          console.warn('Location permission denied, skipping live weather fetch.');
         }
 
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        const { latitude, longitude } = loc.coords;
+        let tempVal: number | null = null;
+        let codeVal = 0;
 
-        // Reverse-geocode to get city name
-        const reverseGeo = await Location.reverseGeocodeAsync({ latitude, longitude });
-        if (reverseGeo.length > 0) {
-          setCityName(reverseGeo[0].city || reverseGeo[0].region || '');
+        // 2. Fetch current weather from Open-Meteo
+        if (latitude !== null && longitude !== null) {
+          const weatherRes = await axios.get(
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&timezone=auto`
+          );
+          const current = weatherRes.data?.current;
+          if (current) {
+            tempVal = Math.round(current.temperature_2m);
+            codeVal = current.weather_code ?? 0;
+            setTemperature(tempVal);
+            setWeatherCode(codeVal);
+          }
         }
 
-        // Fetch current weather from Open-Meteo
-        const weatherRes = await axios.get(
-          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&timezone=auto`
-        );
-
-        const current = weatherRes.data?.current;
-        if (current) {
-          setTemperature(Math.round(current.temperature_2m));
-          setWeatherCode(current.weather_code ?? 0);
+        // 3. Fetch elegant stylish statement from LLM API based on live conditions
+        let fetchedStatement = '';
+        try {
+          const currentConditionStr = getWeatherCondition(codeVal);
+          const aiRes = await axiosInstance.post('/ai/chat', {
+            message: 'Provide exactly one ultra-short, very witty style recommendation based on today\'s weather. No labels or greetings.',
+            weatherData: {
+              temperature: tempVal,
+              condition: currentConditionStr,
+              cityName: finalCity || 'current location'
+            }
+          });
+          
+          fetchedStatement = (aiRes.data?.reply || '').replace(/["']/g, '').trim();
+        } catch (aiErr) {
+          console.warn('LLM Fetch failure, dropping back to calculated text:', aiErr);
+          fetchedStatement = getAiStatement(tempVal, codeVal);
         }
+
+        // 4. Secure statement and serialize persistent cache
+        setAiStatement(fetchedStatement);
+
+        await AsyncStorage.setItem('dashboard_data_cache', JSON.stringify({
+          hourKey: currentHourKey,
+          temp: tempVal,
+          code: codeVal,
+          city: finalCity,
+          statement: fetchedStatement
+        }));
+
       } catch (err) {
-        console.error('Weather fetch error:', err);
+        console.error('Error during dashboard setup load:', err);
       } finally {
         setWeatherLoading(false);
       }
     };
 
-    fetchWeather();
+    fetchDashboardData();
   }, []);
 
   const handleLogout = async () => {
@@ -272,8 +489,12 @@ export default function DashboardScreen() {
     }
   };
 
-  // Select outfit metadata based on state
-  const activeOutfit = outfitConfig[selectedEvent] || outfitConfig['Office'];
+  // Select outfit metadata based on state and inject dynamic AI subtext
+  const baseOutfit = outfitConfig[selectedEvent] || outfitConfig['Office'];
+  const activeOutfit = {
+    ...baseOutfit,
+    subtext: aiStatement || getAiStatement(temperature, weatherCode)
+  };
 
   const handleShuffle = () => {
     const events: EventKey[] = ['Office', 'Gym', 'Dinner Date'];
@@ -401,7 +622,7 @@ export default function DashboardScreen() {
 
       {activeTab === 'wardrobe' && (
         <>
-          <TouchableOpacity style={styles.fabButton} onPress={() => setIsAddDrawerVisible(true)}>
+          <TouchableOpacity style={styles.fabButton} onPress={handleLaunchOutfitCamera}>
             <Text style={styles.fabButtonText}>+</Text>
           </TouchableOpacity>
           <BottomDrawer
@@ -409,9 +630,17 @@ export default function DashboardScreen() {
             onClose={() => setIsAddDrawerVisible(false)}
             title="Add New Apparel"
             fields={wardrobeFields}
+            initialValues={addDrawerInitialValues}
             onSubmit={handleAddWardrobeItem}
             submitButtonText="Add to Wardrobe"
           />
+
+          {isProcessingImage && (
+            <View style={styles.processingOverlay}>
+              <ActivityIndicator size="large" color="#ffffff" />
+              <Text style={styles.processingText}>Extracting & Auto-Tagging with AI...</Text>
+            </View>
+          )}
         </>
       )}
 
@@ -973,7 +1202,6 @@ export const styles: any = StyleSheet.create({
     backgroundColor: '#fee2e2',
     borderColor: '#ff4d6d40',
     borderWidth: 1.5,
-    borderStyle: 'dashed',
     height: 48,
     borderRadius: 24,
     justifyContent: 'center',
@@ -1594,6 +1822,19 @@ export const styles: any = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '300',
     marginTop: -2,
+  },
+  processingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(26, 26, 36, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  processingText: {
+    color: '#ffffff',
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '600',
   },
   aiTabContainer: {
     paddingHorizontal: 20,

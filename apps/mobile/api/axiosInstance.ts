@@ -1,8 +1,19 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+
+const getBaseURL = () => {
+  // Extract host IP from Expo Constants (e.g. "192.168.0.164:8081")
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    return `http://${ip}:4000`;
+  }
+  return 'http://localhost:4000';
+};
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:4000', // Default backend URL
+  baseURL: getBaseURL(), // Dynamically resolved backend URL
   timeout: 10000, // Optional timeout
 });
 

@@ -33,6 +33,21 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   setSelectedEvent,
   handleShuffle,
 }) => {
+  const renderFormattedText = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <Text key={index} style={{ fontWeight: '800', color: '#1a1a24' }}>
+            {part.slice(2, -2)}
+          </Text>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <View>
       <View style={styles.greetingRow}>
@@ -46,7 +61,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 : ''}
           </Text>
           <Text style={styles.greetingSubtitle}>
-            {activeOutfit.subtext}
+            {renderFormattedText(activeOutfit.subtext)}
           </Text>
         </View>
         <View style={styles.weatherIconContainer}>
@@ -99,7 +114,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </View>
           <Text style={styles.cardSubtitle}>STYLE TIP</Text>
           <Text style={styles.cardBodyText}>
-            {activeOutfit.styleTip}
+            {renderFormattedText(activeOutfit.styleTip)}
           </Text>
         </View>
 
@@ -109,7 +124,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </View>
           <Text style={styles.cardSubtitleOrange}>NEXT UP</Text>
           <Text style={styles.cardBodyText}>
-            {activeOutfit.nextUp}
+            {renderFormattedText(activeOutfit.nextUp)}
           </Text>
         </View>
       </View>
