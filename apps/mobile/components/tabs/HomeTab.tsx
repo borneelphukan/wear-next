@@ -16,6 +16,7 @@ interface HomeTabProps {
   selectedEvent: string;
   setSelectedEvent: (evt: any) => void;
   handleShuffle: () => void;
+  useCelsius: boolean;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -32,7 +33,13 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   selectedEvent,
   setSelectedEvent,
   handleShuffle,
+  useCelsius,
 }) => {
+  const displayTemp = temperature !== null 
+    ? (useCelsius ? Math.round(temperature) : Math.round((temperature * 9/5) + 32))
+    : null;
+  const unitLabel = useCelsius ? '°C' : '°F';
+
   const renderFormattedText = (text: string) => {
     if (!text) return null;
     const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -54,8 +61,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         <View style={styles.greetingTextContainer}>
           <Text style={styles.greetingTitle}>
             {getTimeGreeting()}, {userFirstName}!
-            {temperature !== null
-              ? ` It's ${temperature}°C and ${getWeatherCondition(weatherCode)}${cityName ? ` in ${cityName}` : ''}.`
+            {displayTemp !== null
+              ? ` It's ${displayTemp}${unitLabel} and ${getWeatherCondition(weatherCode)}${cityName ? ` in ${cityName}` : ''}.`
               : weatherLoading
                 ? ' Fetching weather…'
                 : ''}
@@ -69,7 +76,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </View>
       </View>
 
-      <Text style={styles.sectionHeading}>TODAY'S EVENTS</Text>
+      <Text style={styles.sectionHeading}>{"TODAY'S EVENTS"}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventsScroll}>
         {(['Office', 'Gym', 'Dinner Date']).map(evt => (
           <TouchableOpacity

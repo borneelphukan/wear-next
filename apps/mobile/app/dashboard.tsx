@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Dimensions, Image, Platform, TextInput, Animated, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, SafeAreaView, Image, Platform, Animated, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
@@ -14,6 +14,19 @@ import { CalendarTab } from '../components/tabs/CalendarTab';
 import { AiTab } from '../components/tabs/AiTab';
 import { SettingsTab } from '../components/tabs/SettingsTab';
 import BottomDrawer, { FormField } from '../components/BottomDrawer';
+import {
+  MenuIcon,
+  CloseIcon,
+  ProfileIcon,
+  BellIcon,
+  PrivacyIcon,
+  LogoutIcon,
+  HomeNavIcon,
+  WardrobeNavIcon,
+  CalendarNavIcon,
+  AiNavIcon,
+  SettingsNavIcon
+} from '../components/SharedIcons';
 
 // --- Weather helpers ---
 
@@ -66,19 +79,6 @@ const getAiStatement = (temp: number | null, code: number): string => {
   return recommendation;
 };
 
-import {
-  MenuIcon,
-  CloseIcon,
-  ProfileIcon,
-  BellIcon,
-  PrivacyIcon,
-  LogoutIcon,
-  HomeNavIcon,
-  WardrobeNavIcon,
-  CalendarNavIcon,
-  AiNavIcon,
-  SettingsNavIcon
-} from '../components/SharedIcons';
 
 // Dynamic Event-based configuration objects to avoid hardcoding
 type EventKey = 'Office' | 'Gym' | 'Dinner Date';
@@ -127,8 +127,11 @@ export default function DashboardScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
 
+  const [userId, setUserId] = useState((params.id as string) || '');
   const [email, setEmail] = useState((params.email as string) || '');
   const [userFirstName, setUserFirstName] = useState((params.firstName as string) || 'User');
+  const [useCelsius, setUseCelsius] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'wardrobe' | 'calendar' | 'ai' | 'settings'>('home');
   const [selectedEvent, setSelectedEvent] = useState<EventKey>('Office');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -165,6 +168,19 @@ export default function DashboardScreen() {
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [addDrawerInitialValues, setAddDrawerInitialValues] = useState<Record<string, any>>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [wardrobeItems, setWardrobeItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadWardrobeData = async () => {
+      try {
+        const res = await axiosInstance.get('/wardrobe');
+        setWardrobeItems(res.data || []);
+      } catch (e) {
+        console.warn('Dashboard wardrobe background fetch error:', e);
+      }
+    };
+    loadWardrobeData();
+  }, [refreshTrigger]);
 
   const wardrobeFields: FormField[] = [
     { name: 'apparel_name', label: 'Apparel Name', type: 'text', required: true, icon: 'tag' },
@@ -330,20 +346,73 @@ export default function DashboardScreen() {
   const [aiStatement, setAiStatement] = useState<string>('');
 
   useEffect(() => {
-    const loadSession = async () => {
+    const loadSessionAndPreferences = async () => {
       try {
+        let activeId = userId;
+        let activeEmail = email;
         const stored = await AsyncStorage.getItem('userSession');
+        
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed.email) setEmail(parsed.email);
+          if (parsed.id) {
+            setUserId(String(parsed.id));
+            activeId = String(parsed.id);
+          }
+          if (parsed.email) {
+            setEmail(parsed.email);
+            activeEmail = parsed.email;
+          }
           if (parsed.firstName) setUserFirstName(parsed.firstName);
         }
+        
+        let userData: any = null;
+
+        // 1. Primary Hydration Attempt: Direct ID fetch
+        if (activeId) {
+          const response = await axiosInstance.get(`/users/${activeId}`);
+          userData = response.data;
+        } 
+        // 2. Legacy Fallback: Session data predates ID storage. Lookup via query fallback.
+        else if (activeEmail) {
+          const response = await axiosInstance.get(`/users/find/by-email?email=${encodeURIComponent(activeEmail)}`);
+          userData = response.data;
+          
+          // Auto-repair current session and cache to prevent repeated fallbacks
+          if (userData && userData.id) {
+            setUserId(String(userData.id));
+            if (stored) {
+              const merged = { ...JSON.parse(stored), id: userData.id };
+              await AsyncStorage.setItem('userSession', JSON.stringify(merged));
+            }
+          }
+        }
+
+        // Finalize dynamic UI preferences using returned configuration
+        if (userData) {
+          if (userData.useCelsius !== undefined) setUseCelsius(userData.useCelsius);
+          if (userData.darkMode !== undefined) setDarkMode(userData.darkMode);
+        }
       } catch (e) {
-        console.error(e);
+        console.warn('Dashboard session hydration failed', e);
       }
     };
-    loadSession();
+    loadSessionAndPreferences();
   }, []);
+
+  const handleUpdatePreference = async (key: 'useCelsius' | 'darkMode', value: boolean) => {
+    try {
+      // Safe optimistic update locally
+      if (key === 'useCelsius') setUseCelsius(value);
+      if (key === 'darkMode') setDarkMode(value);
+
+      if (!userId) return;
+      
+      // Targeted background push using explicit primary key
+      await axiosInstance.post(`/users/${userId}/preferences`, { [key]: value });
+    } catch (err) {
+      console.error('Failed to sync user preference cluster', err);
+    }
+  };
 
   // Fetch weather & cached AI styling insight once per hour
   useEffect(() => {
@@ -456,44 +525,58 @@ export default function DashboardScreen() {
     router.replace('/login');
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      let deleteEmail = email;
-      if (!deleteEmail) {
-        const stored = await AsyncStorage.getItem('userSession');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          deleteEmail = parsed.email || '';
-        }
-      }
-      
-      const cleanEmail = deleteEmail?.trim()?.toLowerCase();
-      
-      if (!cleanEmail) {
-        Alert.alert('Error', 'No active session found.');
-        return;
-      }
-      
-      await AsyncStorage.removeItem('userSession');
-      
-      Alert.alert('Success', 'Your account has been deleted.');
-      router.replace('/login');
-    } catch (error: any) {
-      console.error('[DELETE BUTTON] Error caught during deletion:', error);
-      if (error.response) {
-        console.error('[DELETE BUTTON] Error response data:', error.response.data);
-        console.error('[DELETE BUTTON] Error response status:', error.response.status);
-      }
-      const errorMsg = error.response?.data?.message || 'Failed to delete account. Please try again.';
-      Alert.alert('Error', errorMsg);
+  const handleDeleteAccount = async (password: string) => {
+    let activeDeleteId = userId;
+    if (!activeDeleteId) {
+      const stored = await AsyncStorage.getItem('userSession');
+      if (stored) activeDeleteId = JSON.parse(stored).id;
     }
+    
+    if (!activeDeleteId) {
+      throw new Error('Session recovery failed. Please sign in again to delete.');
+    }
+    
+    // Send password to backend for verification + deletion
+    await axiosInstance.delete(`/users/${activeDeleteId}`, {
+      data: { password },
+    });
+    
+    // Success path: Purge system cache
+    await AsyncStorage.removeItem('userSession');
+    router.replace('/login');
   };
 
-  // Select outfit metadata based on state and inject dynamic AI subtext
+  // Dynamically resolved real wardrobe image or fallback helper
+  const getDynamicGarmentUri = (acceptedTypes: string[], fallbackUri: string) => {
+    let acceptableTags: string[] = [];
+    if (selectedEvent === 'Office') acceptableTags = ['Formal'];
+    else if (selectedEvent === 'Gym') acceptableTags = ['Sports'];
+    else if (selectedEvent === 'Dinner Date') acceptableTags = ['Party', 'Formal'];
+
+    // Collect all matching assets that truly feature an image
+    const items = wardrobeItems.filter((item: any) => 
+      acceptedTypes.includes(item.type) && item.photo && item.photo.trim() !== ''
+    );
+    
+    if (items.length === 0) return fallbackUri;
+
+    // Attempt semantic match by context/event affinity
+    const contextMatch = items.find((item: any) => acceptableTags.includes(item.event));
+    if (contextMatch) return contextMatch.photo;
+
+    // Default fallback selection within local set
+    return items[0].photo;
+  };
+
+  // Select outfit metadata and dynamically swap hardcoded stock photography with real local inventory
   const baseOutfit = outfitConfig[selectedEvent] || outfitConfig['Office'];
   const activeOutfit = {
     ...baseOutfit,
-    subtext: aiStatement || getAiStatement(temperature, weatherCode)
+    subtext: aiStatement || getAiStatement(temperature, weatherCode),
+    top: getDynamicGarmentUri(['Tops', 'Outerwear', 'Ethnic'], baseOutfit.top),
+    bottom: getDynamicGarmentUri(['Bottoms'], baseOutfit.bottom),
+    shoes: getDynamicGarmentUri(['Footwear'], baseOutfit.shoes),
+    accessory: getDynamicGarmentUri(['Accessories'], baseOutfit.accessory),
   };
 
   const handleShuffle = () => {
@@ -530,18 +613,25 @@ export default function DashboardScreen() {
     setSelectedCalendarDay(1);
   };
 
+  // Premium reactive visual theme engine
+  const isDark = darkMode === true;
+  const themeBg = isDark ? '#0c0c12' : '#f8f7fc';
+  const themeSurface = isDark ? '#161623' : '#ffffff';
+  const themeText = isDark ? '#f1f0ff' : '#1a1a24';
+  const themeBorder = isDark ? '#222233' : '#f0eff6';
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={[styles.container, { backgroundColor: themeBg }]}>
+      <StatusBar style={isDark ? "light" : "dark"} />
 
       {/* Top Header Row */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: themeBg, borderBottomColor: themeBorder }]}>
         <View style={styles.headerRow}>
           <View style={styles.logoContainer}>
             <TouchableOpacity onPress={() => setSidebarOpen(true)} style={{ marginRight: 8, padding: 4 }}>
-              <MenuIcon />
+              <MenuIcon color={themeText} />
             </TouchableOpacity>
-            <Text style={styles.logoText}>WearNext</Text>
+            <Text style={[styles.logoText, { color: themeText }]}>WearNext</Text>
           </View>
           <Image
             source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80' }}
@@ -551,7 +641,11 @@ export default function DashboardScreen() {
       </View>
 
       {activeTab !== 'ai' ? (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.scrollContent, { backgroundColor: themeBg }]}
+          showsVerticalScrollIndicator={false}
+          style={{ backgroundColor: themeBg }}
+        >
           {activeTab === 'home' && (
             <HomeTab
               styles={styles}
@@ -567,6 +661,7 @@ export default function DashboardScreen() {
               selectedEvent={selectedEvent}
               setSelectedEvent={setSelectedEvent}
               handleShuffle={handleShuffle}
+              useCelsius={useCelsius}
             />
           )}
 
@@ -602,6 +697,10 @@ export default function DashboardScreen() {
               styles={styles}
               email={email}
               handleDeleteAccount={handleDeleteAccount}
+              handleLogout={handleLogout}
+              useCelsius={useCelsius}
+              darkMode={darkMode}
+              onPreferenceChange={handleUpdatePreference}
             />
           )}
         </ScrollView>
@@ -644,8 +743,8 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {/* Modern High-End Tab Navigation Bar */}
-      <View style={styles.navBar}>
+      {/* Bottom Premium Tab Navigation */}
+      <View style={[styles.navBar, { backgroundColor: themeSurface, borderTopColor: themeBorder }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('home')}>
           <HomeNavIcon active={activeTab === 'home'} />
           <Text style={[styles.navText, activeTab === 'home' && styles.navTextActive]}>Home</Text>

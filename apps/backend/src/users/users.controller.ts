@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Delete, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Delete, Param, HttpCode, HttpStatus, Get, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -8,6 +8,18 @@ export class UsersController {
   @Post('register')
   register(@Body() body: any) {
     return this.usersService.createUser(body);
+  }
+
+  @Get('find/by-email')
+  @HttpCode(HttpStatus.OK)
+  getByEmail(@Query('email') email: string) {
+    return this.usersService.getProfileByEmail(email);
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  getProfile(@Param('id') id: string) {
+    return this.usersService.getProfile(+id);
   }
 
   @Post('login')
@@ -22,9 +34,15 @@ export class UsersController {
     return { success: true, message: 'Logged out successfully' };
   }
 
-  @Delete(':email')
+  @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  deleteAccount(@Param('email') email: string) {
-    return this.usersService.deleteUser(email);
+  deleteAccount(@Param('id') id: string, @Body() body: any) {
+    return this.usersService.deleteUser(+id, body.password);
+  }
+
+  @Post(':id/preferences')
+  @HttpCode(HttpStatus.OK)
+  updatePreferences(@Param('id') id: string, @Body() prefs: any) {
+    return this.usersService.updatePreferences(+id, prefs);
   }
 }
