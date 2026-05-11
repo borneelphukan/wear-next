@@ -15,23 +15,11 @@ import { CalendarTab } from '../components/tabs/Calendar';
 import { AiTab } from '../components/tabs/AI';
 import { Settings } from '../components/tabs/Settings';
 import BottomDrawer, { FormField } from '../components/BottomDrawer';
+import Navbar from '../components/layout/Navbar';
 import {
   MenuIcon,
-  CloseIcon,
-  ProfileIcon,
-  BellIcon,
-  PrivacyIcon,
-  LogoutIcon,
-  HomeNavIcon,
-  WardrobeNavIcon,
-  CalendarNavIcon,
-  AiNavIcon,
-  SettingsNavIcon
 } from '../components/SharedIcons';
 
-// --- Weather helpers ---
-
-/** Map WMO weather codes to human-readable conditions */
 const getWeatherCondition = (code: number): string => {
   if (code === 0) return 'Clear Sky';
   if (code <= 3) return 'Partly Cloudy';
@@ -46,10 +34,8 @@ const getWeatherCondition = (code: number): string => {
   return 'Cloudy';
 };
 
-/** Return true when the WMO code represents sunshine / clear weather */
 const isSunny = (code: number): boolean => code <= 3;
 
-/** Time-of-day greeting */
 const getTimeGreeting = (): string => {
   const h = new Date().getHours();
   if (h < 12) return 'Good Morning';
@@ -57,7 +43,6 @@ const getTimeGreeting = (): string => {
   return 'Good Evening';
 };
 
-/** Generate a dynamic AI statement based on weather and time */
 const getAiStatement = (temp: number | null, code: number): string => {
   const cond = getWeatherCondition(code).toLowerCase();
   const isClear = isSunny(code);
@@ -81,48 +66,7 @@ const getAiStatement = (temp: number | null, code: number): string => {
 };
 
 
-// Dynamic Event-based configuration objects to avoid hardcoding
-type EventKey = 'Office' | 'Gym' | 'Dinner Date';
-
-interface OutfitData {
-  title: string;
-  accessory: string;
-  top: string;
-  bottom: string;
-  shoes: string;
-  styleTip: string;
-  nextUp: string;
-}
-
-const outfitConfig: Record<EventKey, OutfitData> = {
-  'Office': {
-    title: 'The Professional',
-    accessory: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=300&q=80',
-    top: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=300&q=80',
-    bottom: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=300&q=80',
-    shoes: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=300&q=80',
-    styleTip: "Roll the sleeves once for a more relaxed 'Mumbai Creative' vibe.",
-    nextUp: "Dinner Date at 8:00 PM. Needs a layer change.",
-  },
-  'Gym': {
-    title: 'Active Performance',
-    accessory: 'https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&w=300&q=80',
-    top: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=300&q=80',
-    bottom: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=300&q=80',
-    shoes: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80',
-    styleTip: 'Lightweight breathable fabrics will keep you cool during intense training.',
-    nextUp: 'Office at 11:00 AM. Prepare your formal changes.',
-  },
-  'Dinner Date': {
-    title: 'Elegant Date Night',
-    accessory: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=300&q=80',
-    top: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=300&q=80',
-    bottom: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=300&q=80',
-    shoes: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=300&q=80',
-    styleTip: 'Layer with a structured blazer and pair with minimalist silver accessories.',
-    nextUp: 'Night out with friends. Keep it casual and stylish.',
-  },
-};
+// Outfit generator derived from active calendar events and user inventory
 
 export default function DashboardScreen() {
   const params = useLocalSearchParams();
@@ -134,7 +78,28 @@ export default function DashboardScreen() {
   const [useCelsius, setUseCelsius] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'wardrobe' | 'calendar' | 'ai' | 'settings'>('home');
-  const [selectedEvent, setSelectedEvent] = useState<EventKey>('Office');
+  const [isCalendarConnected] = useState(false);  // false -> Schedule Your Calendar banner shown
+  const [userEvents, setUserEvents] = useState<any[]>([]);
+  const [isAddEventDrawerVisible, setIsAddEventDrawerVisible] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+
+  // Intelligent derived event lookup mapping standard JS dates into queryable calendar tags
+  const getFormattedDateKey = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  const todayKey = getFormattedDateKey(new Date());
+
+  // Calculate live daily agenda specifically targeted for the main dashboard feed
+  const todaysEvents = userEvents.filter(e => e.dateKey === todayKey);
+
+  const [selectedEvent, setSelectedEvent] = useState<string>('');
+
+  // Reactive selector maintenance ensuring state stays pointed to latest daily feed item automatically
+  useEffect(() => {
+    if (selectedEvent === '' && todaysEvents.length > 0) {
+      setSelectedEvent(todaysEvents[0].title);
+    } else if (todaysEvents.length > 0 && !todaysEvents.find(e => e.title === selectedEvent)) {
+      setSelectedEvent(todaysEvents[0].title);
+    }
+  }, [todaysEvents, selectedEvent]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const sidebarAnim = useRef(new Animated.Value(0)).current;
@@ -172,15 +137,19 @@ export default function DashboardScreen() {
   const [wardrobeItems, setWardrobeItems] = useState<any[]>([]);
 
   useEffect(() => {
-    const loadWardrobeData = async () => {
+    const loadData = async () => {
       try {
-        const res = await axiosInstance.get('/wardrobe');
-        setWardrobeItems(res.data || []);
+        const [wardrobeRes, eventsRes] = await Promise.all([
+          axiosInstance.get('/wardrobe'),
+          axiosInstance.get('/calendar-events')
+        ]);
+        setWardrobeItems(wardrobeRes.data || []);
+        setUserEvents(eventsRes.data || []);
       } catch (e) {
-        console.warn('Dashboard wardrobe background fetch error:', e);
+        console.warn('Dashboard background data fetch error:', e);
       }
     };
-    loadWardrobeData();
+    loadData();
   }, [refreshTrigger]);
 
   const wardrobeFields: FormField[] = [
@@ -192,6 +161,71 @@ export default function DashboardScreen() {
     { name: 'season', label: 'Season', type: 'dropdown', items: ['Spring', 'Summer', 'Autumn', 'Winter'], required: true, icon: 'weather-sunny' },
     { name: 'event', label: 'Event Type', type: 'dropdown', items: ['Casual', 'Formal', 'Party', 'Ethnic', 'Sports'], required: true, icon: 'calendar-star' },
   ];
+
+  const calendarFields: FormField[] = [
+    { name: 'title', label: 'Event Title', type: 'text', required: true, icon: 'pencil' },
+    { name: 'from', label: 'Start Time', type: 'time', required: false, icon: 'clock-outline', halfWidth: true },
+    { name: 'to', label: 'End Time', type: 'time', required: false, icon: 'clock-outline', halfWidth: true },
+    { name: 'type', label: 'Event Type', type: 'dropdown', items: ['Casual', 'Formal', 'Party', 'Ethnic', 'Sports'], required: true, icon: 'calendar-star' },
+  ];
+
+  const handleAddEvent = async (formData: any) => {
+    const eventDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), selectedCalendarDay);
+    const dateKey = getFormattedDateKey(eventDate);
+    
+    // Combine optional from/to times into display format if provided
+    const combinedTime = formData.from && formData.to 
+      ? `${formData.from} - ${formData.to}` 
+      : formData.from || formData.to || '';
+
+    const newEventPayload = {
+      title: formData.title,
+      type: formData.type,
+      time: combinedTime,
+      from: formData.from,
+      to: formData.to,
+      dateKey: dateKey
+    };
+
+    try {
+      if (editingEvent && editingEvent.id) {
+        // Perform Update
+        await axiosInstance.put(`/calendar-events/${editingEvent.id}`, newEventPayload);
+        Alert.alert('Success', `"${formData.title}" successfully updated!`);
+      } else {
+        // Perform Create
+        await axiosInstance.post('/calendar-events', newEventPayload);
+        Alert.alert('Success', `"${formData.title}" successfully saved to secure cloud!`);
+      }
+      
+      // Trigger unified refresh loop to reload data from server instantly
+      setRefreshTrigger(prev => prev + 1);
+      
+      if (dateKey === todayKey) {
+        setSelectedEvent(formData.title);
+      }
+      
+      setIsAddEventDrawerVisible(false);
+      setEditingEvent(null);
+    } catch (error) {
+      console.error('Failed adding/updating event:', error);
+      Alert.alert('Error', 'Failed to save event changes. Please check connection.');
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    if (!editingEvent || !editingEvent.id) return;
+    try {
+      await axiosInstance.delete(`/calendar-events/${editingEvent.id}`);
+      setRefreshTrigger(prev => prev + 1);
+      setIsAddEventDrawerVisible(false);
+      setEditingEvent(null);
+      Alert.alert('Deleted', 'Event successfully removed.');
+    } catch (err) {
+      console.error('Deletion error:', err);
+      Alert.alert('Error', 'Failed to delete event. Please try again.');
+    }
+  };
 
   const handleAddWardrobeItem = async (data: any) => {
     try {
@@ -544,42 +578,50 @@ export default function DashboardScreen() {
   };
 
   // Dynamically resolved real wardrobe image or fallback helper
-  const getDynamicGarmentUri = (acceptedTypes: string[], fallbackUri: string) => {
-    let acceptableTags: string[] = [];
-    if (selectedEvent === 'Office') acceptableTags = ['Formal'];
-    else if (selectedEvent === 'Gym') acceptableTags = ['Sports'];
-    else if (selectedEvent === 'Dinner Date') acceptableTags = ['Party', 'Formal'];
+  // Dynamically fetch details about which calendar slot is being viewed
+  const currentEventDetails = todaysEvents.find(e => e.title === selectedEvent);
+  const activeEventType = currentEventDetails ? currentEventDetails.type : 'Casual';
 
-    // Collect all matching assets that truly feature an image
+  const getDynamicGarmentUri = (acceptedTypes: string[]) => {
+    // Filter wardrobe only for items belonging to target types
     const items = wardrobeItems.filter((item: any) => 
       acceptedTypes.includes(item.type) && item.photo && item.photo.trim() !== ''
     );
     
-    if (items.length === 0) return fallbackUri;
+    if (items.length === 0) {
+      // Absolute fallback when database does not feature any category matches
+      return 'https://via.placeholder.com/300x300?text=No+Item+Found';
+    }
 
-    // Attempt semantic match by context/event affinity
-    const contextMatch = items.find((item: any) => acceptableTags.includes(item.event));
+    // Try strictly identifying appropriate outfit pieces by semantic database event tags
+    const contextMatch = items.find((item: any) => 
+      item.event && item.event.toLowerCase() === activeEventType.toLowerCase()
+    );
+    
     if (contextMatch) return contextMatch.photo;
 
-    // Default fallback selection within local set
+    // Explicit safety compliance fallback derived from physical DB table
     return items[0].photo;
   };
 
-  // Select outfit metadata and dynamically swap hardcoded stock photography with real local inventory
-  const baseOutfit = outfitConfig[selectedEvent] || outfitConfig['Office'];
   const activeOutfit = {
-    ...baseOutfit,
+    title: currentEventDetails ? `${currentEventDetails.title} Look` : 'Custom Outfit',
     subtext: aiStatement || getAiStatement(temperature, weatherCode),
-    top: getDynamicGarmentUri(['Tops', 'Outerwear', 'Ethnic'], baseOutfit.top),
-    bottom: getDynamicGarmentUri(['Bottoms'], baseOutfit.bottom),
-    shoes: getDynamicGarmentUri(['Footwear'], baseOutfit.shoes),
-    accessory: getDynamicGarmentUri(['Accessories'], baseOutfit.accessory),
+    top: getDynamicGarmentUri(['Tops', 'Outerwear', 'Ethnic']),
+    bottom: getDynamicGarmentUri(['Bottoms']),
+    shoes: getDynamicGarmentUri(['Footwear']),
+    accessory: getDynamicGarmentUri(['Accessories']),
+    styleTip: `Ideal for your upcoming **${activeEventType}** commitment. Ensure neat detailing.`,
+    nextUp: todaysEvents.length > 1
+      ? `Follow-up item is **${todaysEvents[(todaysEvents.findIndex(e => e.title === selectedEvent) + 1) % todaysEvents.length].title}**.`
+      : 'No further event logs recorded today.',
   };
 
   const handleShuffle = () => {
-    const events: EventKey[] = ['Office', 'Gym', 'Dinner Date'];
-    const nextIdx = (events.indexOf(selectedEvent) + 1) % events.length;
-    setSelectedEvent(events[nextIdx]);
+    if (todaysEvents.length === 0) return;
+    const currentIndex = todaysEvents.findIndex(e => e.title === selectedEvent);
+    const nextIndex = (currentIndex + 1) % todaysEvents.length;
+    setSelectedEvent(todaysEvents[nextIndex].title);
   };
 
   // Dynamic calendar calculations
@@ -631,8 +673,8 @@ export default function DashboardScreen() {
             <Text className="text-[22px] font-black tracking-tight ml-2" style={{ color: themeText }}>WearNext</Text>
           </View>
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80' }}
-            className="w-[38px] h-[38px] rounded-full border-[1.5px] border-border-brand"
+            source={{ uri: `https://ui-avatars.com/api/?name=${userFirstName || 'User'}&background=5e5ce6&color=fff&size=128` }}
+            className="w-[38px] h-[38px] rounded-full border-[1.5px] border-border-brand bg-[#f1f0ff]"
           />
         </View>
       </View>
@@ -641,7 +683,7 @@ export default function DashboardScreen() {
         {activeTab !== 'ai' ? (
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 20, paddingBottom: 120, backgroundColor: themeBg }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 40, backgroundColor: themeBg }}
           showsVerticalScrollIndicator={false}
           style={{ flex: 1, backgroundColor: themeBg }}
         >
@@ -660,6 +702,8 @@ export default function DashboardScreen() {
               setSelectedEvent={setSelectedEvent}
               handleShuffle={handleShuffle}
               useCelsius={useCelsius}
+              todaysEvents={todaysEvents}
+              isCalendarConnected={isCalendarConnected}
             />
           )}
 
@@ -685,6 +729,11 @@ export default function DashboardScreen() {
               weeks={weeks}
               selectedCalendarDay={selectedCalendarDay}
               setSelectedCalendarDay={setSelectedCalendarDay}
+              eventsForSelectedDay={userEvents.filter(e => e.dateKey === getFormattedDateKey(new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), selectedCalendarDay)))}
+              onAddEvent={(ev?: any) => {
+                setEditingEvent(ev || null);
+                setIsAddEventDrawerVisible(true);
+              }}
             />
           )}
 
@@ -740,34 +789,27 @@ export default function DashboardScreen() {
         </>
       )}
 
-      {/* Bottom Tab Navigation */}
-      <View
-        className="absolute bottom-0 left-0 right-0 h-[75px] flex-row items-center justify-around pb-4 border-t z-50"
-        style={{ backgroundColor: themeSurface, borderTopColor: themeBorder, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 10 }}
-      >
-        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('home')}>
-          <HomeNavIcon active={activeTab === 'home'} />
-          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'home' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('wardrobe')}>
-          <WardrobeNavIcon active={activeTab === 'wardrobe'} />
-          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'wardrobe' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Wardrobe</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('calendar')}>
-          <CalendarNavIcon active={activeTab === 'calendar'} />
-          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'calendar' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Calendar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('ai')}>
-          <AiNavIcon active={activeTab === 'ai'} />
-          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'ai' ? 'text-brand' : 'text-[#8e8ea0]'}`}>AI</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="items-center justify-center pt-2" onPress={() => setActiveTab('settings')}>
-          <SettingsNavIcon active={activeTab === 'settings'} />
-          <Text className={`text-[11px] font-bold mt-1 ${activeTab === 'settings' ? 'text-brand' : 'text-[#8e8ea0]'}`}>Settings</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomDrawer
+        isVisible={isAddEventDrawerVisible}
+        onClose={() => {
+          setIsAddEventDrawerVisible(false);
+          setEditingEvent(null);
+        }}
+        title={editingEvent ? "Edit Event" : "Add Event"}
+        fields={calendarFields}
+        initialValues={editingEvent || {}}
+        onSubmit={handleAddEvent}
+        onDelete={editingEvent ? handleDeleteEvent : undefined}
+        headerSubmit={true}
+      />
 
-      {/* Sidebar Overlay and Menu */}
+      <Navbar
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        themeSurface={themeSurface} 
+        themeBorder={themeBorder} 
+      />
+
       {isSidebarVisible && (
         <View className="absolute inset-0 z-[10000] flex-row">
           <TouchableOpacity

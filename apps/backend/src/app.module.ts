@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { WardrobeModule } from './wardrobe/wardrobe.module';
 import { AiModule } from './ai/ai.module';
+import { CalendarEventsModule } from './calendar-events/calendar-events.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AiModule } from './ai/ai.module';
     UsersModule,
     WardrobeModule,
     AiModule,
+    CalendarEventsModule,
   ],
   controllers: [AppController],
   providers: [

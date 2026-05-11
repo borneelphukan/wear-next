@@ -10,10 +10,12 @@ import {
   TouchableOpacity,
   TextInput,
   Text,
+  SafeAreaView,
 } from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Calendar, DateData } from "react-native-calendars";
 import * as ImagePicker from "expo-image-picker";
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 type FieldType =
   | "text"
@@ -26,6 +28,7 @@ type FieldType =
   | "checkbox"
   | "tags"
   | "dynamic-list"
+  | "time"
   | "image";
 
 export type FormField = {
@@ -53,6 +56,8 @@ type BottomDrawerProps = {
   onSubmit: (data: any) => Promise<void>;
   submitButtonText?: string;
   isSubmitting?: boolean;
+  headerSubmit?: boolean;
+  onDelete?: () => Promise<void>;
   children?: React.ReactNode;
 };
 
@@ -80,7 +85,7 @@ const FormDropdown = ({
     <View className="mb-3">
       <TouchableOpacity
         activeOpacity={0.7}
-        onPress={() => !disabled && setVisible(true)}
+        onPress={() => !disabled && setVisible(!visible)}
         disabled={disabled}
         className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${
           error ? "border-red-500" : "border-border-brand"
@@ -100,41 +105,42 @@ const FormDropdown = ({
             {selectedValue || `Select ${label}`}
           </Text>
         </View>
-        <MaterialCommunityIcons name="chevron-down" size={18} color="#656475" />
+        <MaterialCommunityIcons 
+          name={visible ? "chevron-up" : "chevron-down"} 
+          size={18} 
+          color="#656475" 
+        />
       </TouchableOpacity>
 
-      {error ? <Text className="text-red-500 text-xs mt-1 ml-1">{error}</Text> : null}
-
-      <Modal transparent visible={visible} animationType="fade" onRequestClose={() => setVisible(false)}>
-        <TouchableOpacity
-          activeOpacity={1}
-          className="flex-1 bg-[rgba(0,0,0,0.3)] justify-end"
-          onPress={() => setVisible(false)}
+      {visible && (
+        <View
+          className="bg-surface border border-border rounded-xl mt-1 overflow-hidden"
+          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}
         >
-          <View
-            className="bg-surface rounded-t-3xl p-4"
-            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 10 }}
-          >
-            <Text className="text-[16px] font-extrabold text-text mb-3 px-2">{label}</Text>
-            <ScrollView style={{ maxHeight: 300 }}>
-              {items.map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  className={`py-3 px-3 rounded-xl mb-1 ${selectedValue === item ? "bg-brand-light" : ""}`}
-                  onPress={() => {
-                    onSelect(item);
-                    setVisible(false);
-                  }}
-                >
-                  <Text className={`text-[15px] font-semibold ${selectedValue === item ? "text-brand" : "text-text"}`}>
+          <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
+            {items.map((item) => (
+              <TouchableOpacity
+                key={item}
+                className={`py-3.5 px-4 border-b border-[#f5f5f8] ${selectedValue === item ? "bg-brand-light" : ""}`}
+                onPress={() => {
+                  onSelect(item);
+                  setVisible(false);
+                }}
+              >
+                <View className="flex-row items-center justify-between">
+                  <Text className={`text-[14px] font-bold ${selectedValue === item ? "text-brand" : "text-text"}`}>
                     {item}
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+                  {selectedValue === item && (
+                    <MaterialIcons name="check" size={16} color="#5e5ce6" />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+      {error ? <Text className="text-red-500 text-xs mt-1 ml-1">{error}</Text> : null}
     </View>
   );
 };
@@ -217,13 +223,17 @@ export const BottomDrawer = ({
   onSubmit,
   submitButtonText = "Save",
   isSubmitting: isSubmittingProp,
+  headerSubmit = false,
+  onDelete,
   children,
 }: BottomDrawerProps) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [activeDateField, setActiveDateField] = useState<string | null>(null);
+  const [activeTimeField, setActiveTimeField] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState("");
 
   const isSubmitting = isSubmittingProp || isSubmittingInternal;
@@ -531,6 +541,39 @@ export const BottomDrawer = ({
         );
       }
 
+      /* ── Time ── */
+      if (field.type === "time") {
+        return (
+          <View key={field.name} className={`${containerClass} mb-3`}>
+            <TouchableOpacity
+              onPress={() => { setActiveTimeField(field.name); setTimePickerVisible(true); }}
+              disabled={field.disabled}
+              className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}
+            >
+              {field.icon && (
+                <MaterialCommunityIcons name={field.icon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+              )}
+              <View className="flex-1">
+                <Text className="text-[11px] font-bold text-text-muted">{field.label}</Text>
+                <Text className={`text-[14px] font-semibold ${formData[field.name] ? "text-text" : "text-text-faint"}`}>
+                  {formData[field.name] ? (
+                    (() => {
+                      const [h, m] = formData[field.name].split(':');
+                      const hh = parseInt(h, 10);
+                      const ampm = hh >= 12 ? 'PM' : 'AM';
+                      const formattedH = hh % 12 === 0 ? 12 : hh % 12;
+                      return `${formattedH}:${m} ${ampm}`;
+                    })()
+                  ) : "Select time"}
+                </Text>
+              </View>
+              <MaterialIcons name="access-time" size={18} color="#656475" />
+            </TouchableOpacity>
+            {errors[field.name] ? <Text className="text-red-500 text-xs mt-1">{errors[field.name]}</Text> : null}
+          </View>
+        );
+      }
+
       /* ── Default Text/Number/Email/Phone ── */
       return (
         <View key={field.name} className={`${containerClass} mb-3`}>
@@ -559,7 +602,7 @@ export const BottomDrawer = ({
         </View>
       );
     },
-    [formData, errors, tagInput, setTagInput, handleAddTag, handleRemoveTag, handleInputChange, setActiveDateField, setDatePickerVisible]
+    [formData, errors, tagInput, setTagInput, handleAddTag, handleRemoveTag, handleInputChange, setActiveDateField, setDatePickerVisible, setActiveTimeField, setTimePickerVisible]
   );
 
   const renderedFields = useMemo(() => {
@@ -612,50 +655,129 @@ export const BottomDrawer = ({
     setActiveDateField(null);
   };
 
+  const handleTimeChange = (event: DateTimePickerEvent, date?: Date) => {
+    // On certain platforms dismissing without change closes instantly
+    if (event.type === 'dismissed') {
+      setTimePickerVisible(false);
+      setActiveTimeField(null);
+      return;
+    }
+    
+    if (date && activeTimeField) {
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
+      handleInputChange(activeTimeField, timeStr);
+    }
+    
+    setTimePickerVisible(false);
+    setActiveTimeField(null);
+  };
+
+  // Reusable helper constructing valid Date instance from runtime field value to keep spinner calibrated
+  const getTimeValueForPicker = () => {
+    const val = activeTimeField && formData[activeTimeField];
+    const d = new Date();
+    if (val && typeof val === 'string' && val.includes(':')) {
+      const [h, m] = val.split(':').map(Number);
+      d.setHours(h, m, 0, 0);
+    }
+    return d;
+  };
+
   return (
     <>
-      <Modal transparent visible={isVisible} animationType="slide" onRequestClose={onClose}>
-        <View className="flex-1 justify-end">
-          {/* Backdrop */}
-          <TouchableOpacity activeOpacity={1} className="absolute inset-0 bg-[rgba(0,0,0,0.4)]" onPress={onClose} />
-
-          {/* Drawer */}
-          <View
-            className="bg-surface rounded-t-3xl"
-            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.12, shadowRadius: 16, elevation: 12, maxHeight: '92%' }}
-          >
+      <Modal visible={isVisible} animationType="slide" onRequestClose={onClose}>
+        <SafeAreaView className="flex-1 bg-surface">
+          <View className="flex-1 bg-surface">
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
               {/* Header */}
-              <View className="flex-row justify-between items-center mb-5">
-                <Text className="text-[18px] font-extrabold text-text">{title}</Text>
-                <TouchableOpacity
-                  onPress={onClose}
-                  className="w-8 h-8 rounded-full bg-brand-light justify-center items-center"
-                >
-                  <MaterialIcons name="close" size={20} color="#1a1a24" />
-                </TouchableOpacity>
+              <View className="flex-row justify-between items-center mb-6 px-1">
+                {/* Close Button (Left aligned if headerSubmit is true, otherwise implicit flow) */}
+                {headerSubmit ? (
+                  <TouchableOpacity
+                    onPress={onClose}
+                    className="w-9 h-9 rounded-full bg-bg items-center justify-center border border-border"
+                  >
+                    <MaterialIcons name="close" size={20} color="#656475" />
+                  </TouchableOpacity>
+                ) : (
+                  <Text className="text-[18px] font-extrabold text-text">{title}</Text>
+                )}
+
+                {/* Centered Title in HeaderSubmit flow */}
+                {headerSubmit && (
+                  <Text className="text-[17px] font-extrabold text-text">{title}</Text>
+                )}
+
+                {/* Dynamic Right Element: Submit Tick OR default Close X */}
+                {headerSubmit ? (
+                  <TouchableOpacity
+                    onPress={handleSubmit}
+                    disabled={isSubmitting}
+                    className={`w-9 h-9 rounded-full items-center justify-center ${isSubmitting ? "bg-gray-200" : "bg-green-500"}`}
+                    style={{ shadowColor: '#22c55e', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 6 }}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <MaterialIcons name="check" size={22} color="#ffffff" />
+                    )}
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={onClose}
+                    className="w-8 h-8 rounded-full bg-brand-light justify-center items-center"
+                  >
+                    <MaterialIcons name="close" size={20} color="#1a1a24" />
+                  </TouchableOpacity>
+                )}
               </View>
 
               {/* Form Fields */}
               <View>{renderedFields}</View>
               {children}
 
-              {/* Submit Button */}
-              <TouchableOpacity
-                onPress={handleSubmit}
-                disabled={isSubmitting}
-                className={`w-full h-[52px] rounded-full justify-center items-center mt-4 ${isSubmitting ? "opacity-60" : ""} bg-brand`}
-                style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 }}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <Text className="text-white text-base font-bold">{submitButtonText}</Text>
-                )}
-              </TouchableOpacity>
+              {/* Optional Destructive Delete Row (Enabled strictly if parent provides callback) */}
+              {onDelete && (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    Alert.alert(
+                      'Delete Record',
+                      'Are you sure you want to permanently remove this from your database?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', style: 'destructive', onPress: onDelete }
+                      ]
+                    );
+                  }}
+                  className="w-full h-[54px] rounded-2xl border border-[#ffeded] bg-[#fff4f4] flex-row justify-center items-center mt-10 mb-4"
+                  style={{ shadowColor: '#ff3b30', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 }}
+                >
+                  <MaterialIcons name="delete-sweep" size={22} color="#ff3b30" style={{ marginRight: 8 }} />
+                  <Text className="text-[#ff3b30] text-[16px] font-black tracking-wide">Delete Event</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Standard Submit Button (Hidden if headerSubmit is active) */}
+              {!headerSubmit && (
+                <TouchableOpacity
+                  onPress={handleSubmit}
+                  disabled={isSubmitting}
+                  className={`w-full h-[52px] rounded-full justify-center items-center mt-4 ${isSubmitting ? "opacity-60" : ""} bg-brand`}
+                  style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 }}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#ffffff" />
+                  ) : (
+                    <Text className="text-white text-base font-bold">{submitButtonText}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </ScrollView>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
 
       {/* Date Picker Modal */}
@@ -684,6 +806,17 @@ export const BottomDrawer = ({
           </View>
         </View>
       </Modal>
+
+      {/* Time Picker Component (Mounts conditionally depending on trigger visibility) */}
+      {isTimePickerVisible && (
+        <DateTimePicker
+          value={getTimeValueForPicker()}
+          mode="time"
+          is24Hour={false}
+          display="spinner"
+          onChange={handleTimeChange}
+        />
+      )}
     </>
   );
 };
