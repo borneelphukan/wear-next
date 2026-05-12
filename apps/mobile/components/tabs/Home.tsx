@@ -17,7 +17,7 @@ interface Props {
   setSelectedEvent: (evt: string) => void;
   handleShuffle: () => void;
   useCelsius: boolean;
-  todaysEvents: Array<{ id: number; title: string; type: string; time: string }>;
+  todaysEvents: { id: number; title: string; type: string; time: string }[];
   isCalendarConnected: boolean;
 }
 
@@ -137,42 +137,24 @@ export const Home: React.FC<Props> = ({
             </View>
           </View>
 
-          {/* Action Buttons */}
-          <View className="flex-row justify-between mb-6 gap-3">
-            <TouchableOpacity
-              className="flex-1 h-[52px] bg-brand rounded-full justify-center items-center"
-              style={{ shadowColor: '#3182ce', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 3 }}
-              onPress={() => Alert.alert('Wear Outfit', `You have selected ${activeOutfit.title} as your look!`)}
-            >
-              <Text className="text-white text-base font-bold">Wear This</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-1 h-[52px] border-2 border-brand bg-surface dark:bg-gray-600 rounded-full flex-row justify-center items-center gap-2"
-              onPress={handleShuffle}
-            >
-              <SparkleIcon />
-              <Text className="text-brand dark:text-light text-base font-bold">Shuffle</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Info Cards */}
           <View className="flex-row justify-between gap-4">
-            <View className="flex-1 bg-brand-light dark:bg-gray-700 rounded-3xl p-4 min-h-[150px]">
+            <View className="flex-1 bg-brand-light dark:bg-gray-700 rounded-xl p-4 min-h-[150px]">
               <View className="mb-3">
                 <TrendIcon />
               </View>
-              <Text className="text-[11px] font-extrabold text-brand dark:text-brand-soft tracking-widest mb-2">STYLE TIP</Text>
-              <Text className="text-[13px] text-dark dark:text-light leading-[18px] font-semibold">
+              <Text className="text-xs font-extrabold text-brand dark:text-brand-soft tracking-widest mb-2">STYLE TIP</Text>
+              <Text className="text-xs text-dark dark:text-light">
                 {renderFormattedText(activeOutfit.styleTip)}
               </Text>
             </View>
 
-            <View className="flex-1 bg-orange-bg dark:bg-gray-700 rounded-3xl p-4 min-h-[150px]">
+            <View className="flex-1 bg-orange-bg dark:bg-gray-700 rounded-xl p-4 min-h-[150px]">
               <View className="mb-3">
                 <CalendarIcon />
               </View>
-              <Text className="text-[11px] font-extrabold text-orange-accent dark:text-orange-300 tracking-widest mb-2">NEXT UP</Text>
-              <Text className="text-[13px] text-dark dark:text-light leading-[18px] font-semibold">
+              <Text className="text-xs font-extrabold text-orange-accent dark:text-orange-300 mb-2">NEXT UP</Text>
+              <Text className="text-xs text-dark dark:text-light">
                 {renderFormattedText(activeOutfit.nextUp)}
               </Text>
             </View>

@@ -70,11 +70,27 @@ export const Switch = ({
           activeOpacity={0.85}
           onPress={handleClick}
           disabled={disabled}
-          className={`w-11 h-6 rounded-full flex justify-center ${displayChecked ? "bg-green-200" : "bg-gray-500"} transition-colors`}
+          className={`rounded-full ${displayChecked ? "bg-green-200" : "bg-gray-500"}`}
+          style={{
+            width: 44,
+            height: 24,
+            justifyContent: 'center',
+            alignItems: 'flex-start', // Align knob to left edge so translateX can push it right correctly!
+          }}
         >
           <Animated.View
-            className="h-5 w-5 rounded-full bg-white shadow-sm"
-            style={{ transform: [{ translateX }] }}
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 10,
+              backgroundColor: "white",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 2,
+              elevation: 2,
+              transform: [{ translateX }]
+            }}
           />
         </TouchableOpacity>
       </View>

@@ -1,4 +1,4 @@
-import { Redirect, useRouter } from "expo-router";
+import { Redirect } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Text, View, ActivityIndicator } from "react-native";
 import { StatusBar } from "expo-status-bar";
@@ -8,7 +8,6 @@ export default function Index() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isSplashScreen, setIsSplashScreen] = useState(true);
   const [session, setSession] = useState<{ firstName: string; email: string } | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const checkSession = async () => {

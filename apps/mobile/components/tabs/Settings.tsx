@@ -4,20 +4,28 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Switch } from '@wear-next/ui';
 
 interface Props {
-  styles?: any; // kept for backward compat but unused
+  styles?: any;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
   handleDeleteAccount: (password: string) => Promise<void>;
   useCelsius: boolean;
   darkMode: boolean;
   onPreferenceChange: (key: 'useCelsius' | 'darkMode', val: boolean) => void;
+  onEditProfile: () => void;
 }
 
 export const Settings: React.FC<Props> = ({
   email,
+  firstName,
+  lastName,
+  phone,
   handleDeleteAccount,
   useCelsius,
   darkMode,
   onPreferenceChange,
+  onEditProfile,
 }) => {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -28,7 +36,9 @@ export const Settings: React.FC<Props> = ({
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   const userName = email ? email.split('@')[0] : 'User';
-  const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
+  const fallbackName = userName.charAt(0).toUpperCase() + userName.slice(1);
+  const displayName = [firstName, lastName].filter(Boolean).join(' ').trim() || fallbackName;
+  const initials = ((firstName?.charAt(0) || '') + (lastName?.charAt(0) || '')).toUpperCase() || fallbackName.charAt(0);
 
   const openDeleteModal = () => {
     setDeleteStep('confirm');
@@ -72,21 +82,23 @@ export const Settings: React.FC<Props> = ({
         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.03, shadowRadius: 20, elevation: 3 }}
       >
         <View className="relative mb-4">
-          <View className="p-1 rounded-full border-2 border-[#3182ce20]">
-            <Image
-              source={{ uri: 'https://ui-avatars.com/api/?name=' + capitalizedName + '&background=5e5ce6&color=fff&size=128' }}
-              className="w-20 h-20 rounded-full bg-[#f1f0ff]"
-            />
+          <View className="p-1 rounded-full border-2 border-brand mb-1">
+            <View className="w-20 h-20 rounded-full bg-brand-light dark:bg-gray-700 justify-center items-center">
+               <Text className="text-[28px] font-black text-brand tracking-wider">{initials}</Text>
+            </View>
           </View>
-          <TouchableOpacity className="absolute bottom-0.5 right-0.5 bg-brand w-7 h-7 rounded-full justify-center items-center border-[3px] border-surface dark:border-gray-600">
+          <TouchableOpacity className="absolute bottom-1.5 right-0.5 bg-brand w-7 h-7 rounded-full justify-center items-center border-[3px] border-surface dark:border-gray-600">
             <MaterialCommunityIcons name="camera" size={14} color="#ffffff" />
           </TouchableOpacity>
         </View>
 
-        <Text className="text-[20px] font-extrabold text-dark dark:text-light mb-1">{capitalizedName}</Text>
+        <Text className="text-[20px] font-extrabold text-dark dark:text-light mb-1">{displayName}</Text>
         <Text className="text-sm text-faint dark:text-light font-medium mb-5">{email || 'wearnext@example.com'}</Text>
 
-        <TouchableOpacity className="bg-[#f5f4fd] dark:bg-gray-700 px-6 py-2.5 rounded-full">
+        <TouchableOpacity 
+          className="bg-brand-light dark:bg-gray-700 px-6 py-2.5 rounded-full"
+          onPress={onEditProfile}
+        >
           <Text className="text-brand dark:text-brand-soft font-bold text-[13px]">Edit Profile</Text>
         </TouchableOpacity>
       </View>

@@ -45,4 +45,10 @@ export class UsersController {
   updatePreferences(@Param('id') id: string, @Body() prefs: any) {
     return this.usersService.updatePreferences(+id, prefs);
   }
+
+  @Post(':id/profile')
+  @HttpCode(HttpStatus.OK)
+  updateProfile(@Param('id') id: string, @Body() updates: any) {
+    return this.usersService.updateProfile(+id, updates);
+  }
 }

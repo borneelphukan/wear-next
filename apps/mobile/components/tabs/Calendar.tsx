@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert, TextInput, Pressable, ScrollView } from 'react-native';
-import { LeftArrowIcon, RightArrowIcon, PartyPopperIcon, BulbIcon } from '../SharedIcons';
+import { View, Text, TouchableOpacity, Alert, Pressable, ScrollView } from 'react-native';
+import { LeftArrowIcon, RightArrowIcon, BulbIcon } from '../SharedIcons';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface Props {

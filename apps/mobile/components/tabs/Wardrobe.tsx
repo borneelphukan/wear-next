@@ -192,7 +192,7 @@ export const Wardrobe: React.FC<Props> = ({
             });
             return items.length === 0;
           }) && !loading && (
-            <Text className="text-center mt-6 text-faint font-semibold dark:text-light">No classified items found in this section.</Text>
+            <Text className="text-center mt-6 text-dark dark:text-light">No classified items found in this section.</Text>
           )}
         </View>
       )}

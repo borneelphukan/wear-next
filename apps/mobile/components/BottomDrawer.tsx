@@ -88,8 +88,8 @@ const FormDropdown = ({
         onPress={() => !disabled && setVisible(!visible)}
         disabled={disabled}
         className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${
-          error ? "border-red-500" : "border-border-brand"
-        } ${disabled ? "opacity-60" : ""}`}
+          error ? "border-red-500" : "border-border-brand dark:border-gray-600"
+        } dark:bg-gray-700 ${disabled ? "opacity-60" : ""}`}
       >
         {leftIcon && (
           <MaterialCommunityIcons
@@ -114,14 +114,14 @@ const FormDropdown = ({
 
       {visible && (
         <View
-          className="bg-surface border border-border rounded-xl mt-1 overflow-hidden"
+          className="bg-surface border border-border rounded-xl mt-1 overflow-hidden dark:bg-gray-700 dark:border-gray-600"
           style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}
         >
           <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled={true}>
             {items.map((item) => (
               <TouchableOpacity
                 key={item}
-                className={`py-3.5 px-4 border-b border-[#f5f5f8] ${selectedValue === item ? "bg-brand-light" : ""}`}
+                className={`py-3.5 px-4 border-b border-[#f5f5f8] dark:border-gray-700 ${selectedValue === item ? "bg-brand-light dark:bg-gray-700" : ""}`}
                 onPress={() => {
                   onSelect(item);
                   setVisible(false);
@@ -171,7 +171,7 @@ const FormAutocomplete = ({
 
   return (
     <View className="mb-3">
-      <View className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${error ? "border-red-500" : "border-border-brand"}`}>
+      <View className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 dark:bg-gray-700 ${error ? "border-red-500" : "border-border-brand dark:border-gray-600"}`}>
         {leftIcon && (
           <MaterialCommunityIcons name={leftIcon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
         )}
@@ -190,7 +190,7 @@ const FormAutocomplete = ({
 
       {visible && suggestions.length > 0 && (
         <View
-          className="bg-surface border border-border-brand rounded-xl mt-1 overflow-hidden"
+          className="bg-surface border border-border-brand rounded-xl mt-1 overflow-hidden dark:bg-gray-700 dark:border-gray-600"
           style={{ elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 }}
         >
           <FlatList
@@ -198,7 +198,7 @@ const FormAutocomplete = ({
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
               <TouchableOpacity
-                className="py-3 px-4 border-b border-border"
+                className="py-3 px-4 border-b border-border dark:border-gray-700"
                 onPress={() => { onSelect(item); setVisible(false); }}
               >
                 <Text className="text-[15px] text-dark font-semibold dark:text-light">{item}</Text>
@@ -245,7 +245,7 @@ export const BottomDrawer = ({
     }
   }, [isVisible, initialValues]);
 
-  const handleInputChange = (name: string, value: any) => {
+  const handleInputChange = useCallback((name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => {
@@ -254,37 +254,37 @@ export const BottomDrawer = ({
         return next;
       });
     }
-  };
+  }, [errors]);
 
-  const handleAddTag = (fieldName: string, tag: string) => {
+  const handleAddTag = useCallback((fieldName: string, tag: string) => {
     if (!tag.trim()) return;
     const current = Array.isArray(formData[fieldName]) ? formData[fieldName] : [];
     if (!current.includes(tag.trim())) {
       handleInputChange(fieldName, [...current, tag.trim()]);
     }
     setTagInput("");
-  };
+  }, [formData, handleInputChange]);
 
-  const handleRemoveTag = (fieldName: string, tagToRemove: string) => {
+  const handleRemoveTag = useCallback((fieldName: string, tagToRemove: string) => {
     const current = Array.isArray(formData[fieldName]) ? formData[fieldName] : [];
     handleInputChange(fieldName, current.filter((t: string) => t !== tagToRemove));
-  };
+  }, [formData, handleInputChange]);
 
-  const handleDynamicListChange = (fieldName: string, index: number, subFieldName: string, value: any) => {
+  const handleDynamicListChange = useCallback((fieldName: string, index: number, subFieldName: string, value: any) => {
     const current = Array.isArray(formData[fieldName]) ? [...formData[fieldName]] : [{}];
     current[index] = { ...current[index], [subFieldName]: value };
     handleInputChange(fieldName, current);
-  };
+  }, [formData, handleInputChange]);
 
-  const handleAddDynamicListItem = (fieldName: string) => {
+  const handleAddDynamicListItem = useCallback((fieldName: string) => {
     const current = Array.isArray(formData[fieldName]) ? [...formData[fieldName]] : [];
     handleInputChange(fieldName, [...current, {}]);
-  };
+  }, [formData, handleInputChange]);
 
-  const handleRemoveDynamicListItem = (fieldName: string, index: number) => {
+  const handleRemoveDynamicListItem = useCallback((fieldName: string, index: number) => {
     const current = Array.isArray(formData[fieldName]) ? [...formData[fieldName]] : [];
     handleInputChange(fieldName, current.filter((_, i) => i !== index));
-  };
+  }, [formData, handleInputChange]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -349,7 +349,7 @@ export const BottomDrawer = ({
             <Text className="text-[13px] font-bold text-muted mb-2 dark:text-light">{field.label}</Text>
             <TouchableOpacity
               onPress={pickImage}
-              className="h-[120px] bg-brand-light rounded-xl overflow-hidden justify-center items-center"
+              className="h-[120px] bg-brand-light dark:bg-gray-700 rounded-xl overflow-hidden justify-center items-center"
             >
               {selectedImage ? (
                 <Image source={{ uri: selectedImage }} className="w-full h-full" />
@@ -376,7 +376,7 @@ export const BottomDrawer = ({
             {items.map((item: any, itemIndex: number) => (
               <View
                 key={`${field.name}-${itemIndex}`}
-                className="bg-bg border border-border-brand rounded-2xl p-3 mb-3"
+                className="bg-bg border border-border-brand rounded-2xl p-3 mb-3 dark:bg-gray-700 dark:border-gray-600"
                 style={{ elevation: 1 }}
               >
                 <View className="flex-row justify-between items-center mb-3">
@@ -405,7 +405,7 @@ export const BottomDrawer = ({
                             leftIcon={subField.icon}
                           />
                         ) : (
-                          <View className="flex-row items-center h-[48px] bg-surface border border-border-brand rounded-xl px-3 mb-2">
+                          <View className="flex-row items-center h-[48px] bg-surface border border-border-brand rounded-xl px-3 mb-2 dark:bg-gray-700 dark:border-gray-600">
                             {subField.icon && (
                               <MaterialCommunityIcons name={subField.icon as any} size={16} color="#3182ce" style={{ marginRight: 8 }} />
                             )}
@@ -441,7 +441,7 @@ export const BottomDrawer = ({
         const currentTags = Array.isArray(formData[field.name]) ? formData[field.name] : [];
         return (
           <View key={field.name} className={`${containerClass} mb-3`}>
-            <View className="flex-row items-center h-[52px] bg-bg border border-border-brand rounded-xl px-3">
+            <View className="flex-row items-center h-[52px] bg-bg border border-border-brand rounded-xl px-3 dark:bg-gray-700 dark:border-gray-600">
               <TextInput
                 className="flex-1 text-[15px] text-dark dark:text-light"
                 placeholder={field.placeholder || "Type and press add"}
@@ -456,7 +456,7 @@ export const BottomDrawer = ({
             </View>
             <View className="flex-row flex-wrap gap-2 mt-2 mb-3">
               {currentTags.map((tag: string) => (
-                <View key={tag} className="flex-row items-center bg-brand-light rounded-full px-3 py-1">
+                <View key={tag} className="flex-row items-center bg-brand-light dark:bg-gray-700 rounded-full px-3 py-1">
                   <Text className="text-brand text-[13px] font-semibold">{tag}</Text>
                   <TouchableOpacity onPress={() => handleRemoveTag(field.name, tag)} className="ml-2">
                     <MaterialIcons name="close" size={14} color="#3182ce" />
@@ -507,7 +507,7 @@ export const BottomDrawer = ({
               onPress={() => !field.disabled && handleInputChange(field.name, !checked)}
               disabled={field.disabled}
             >
-              <View className={`w-6 h-6 rounded-md border-2 justify-center items-center ${checked ? "bg-brand border-brand" : "border-border-brand bg-bg"}`}>
+              <View className={`w-6 h-6 rounded-md border-2 justify-center items-center ${checked ? "bg-brand border-brand" : "border-border-brand bg-bg dark:bg-gray-700 dark:border-gray-600"}`}>
                 {checked && <MaterialIcons name="check" size={16} color="#ffffff" />}
               </View>
               <Text className="text-[15px] font-semibold text-dark dark:text-light">{field.label}</Text>
@@ -523,7 +523,7 @@ export const BottomDrawer = ({
             <TouchableOpacity
               onPress={() => { setActiveDateField(field.name); setDatePickerVisible(true); }}
               disabled={field.disabled}
-              className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}
+              className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 dark:bg-gray-700 ${errors[field.name] ? "border-red-500" : "border-border-brand dark:border-gray-600"} ${field.disabled ? "opacity-60" : ""}`}
             >
               {field.icon && (
                 <MaterialCommunityIcons name={field.icon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
@@ -548,7 +548,7 @@ export const BottomDrawer = ({
             <TouchableOpacity
               onPress={() => { setActiveTimeField(field.name); setTimePickerVisible(true); }}
               disabled={field.disabled}
-              className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}
+              className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 dark:bg-gray-700 ${errors[field.name] ? "border-red-500" : "border-border-brand dark:border-gray-600"} ${field.disabled ? "opacity-60" : ""}`}
             >
               {field.icon && (
                 <MaterialCommunityIcons name={field.icon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
@@ -577,7 +577,7 @@ export const BottomDrawer = ({
       /* ── Default Text/Number/Email/Phone ── */
       return (
         <View key={field.name} className={`${containerClass} mb-3`}>
-          <View className={`flex-row items-center ${field.multiline ? "min-h-[52px] py-2" : "h-[52px]"} bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}>
+          <View className={`flex-row items-center ${field.multiline ? "min-h-[52px] py-2" : "h-[52px]"} bg-bg border rounded-xl px-3 dark:bg-gray-700 ${errors[field.name] ? "border-red-500" : "border-border-brand dark:border-gray-600"} ${field.disabled ? "opacity-60" : ""}`}>
             {field.icon && (
               <MaterialCommunityIcons name={field.icon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
             )}
@@ -602,7 +602,7 @@ export const BottomDrawer = ({
         </View>
       );
     },
-    [formData, errors, tagInput, setTagInput, handleAddTag, handleRemoveTag, handleInputChange, setActiveDateField, setDatePickerVisible, setActiveTimeField, setTimePickerVisible]
+    [formData, errors, tagInput, setTagInput, handleAddTag, handleRemoveTag, handleInputChange, setActiveDateField, setDatePickerVisible, setActiveTimeField, setTimePickerVisible, handleAddDynamicListItem, handleDynamicListChange, handleRemoveDynamicListItem]
   );
 
   const renderedFields = useMemo(() => {
@@ -645,7 +645,7 @@ export const BottomDrawer = ({
     }
 
     return rows;
-  }, [fields, formData, errors, tagInput, renderField]);
+  }, [fields, renderField]);
 
   const handleDayPress = (day: DateData) => {
     if (activeDateField) {
@@ -687,9 +687,13 @@ export const BottomDrawer = ({
 
   return (
     <>
-      <Modal visible={isVisible} animationType="slide" onRequestClose={onClose}>
-        <SafeAreaView className="flex-1 bg-surface">
-          <View className="flex-1 bg-surface">
+      <Modal transparent visible={isVisible} animationType="slide" onRequestClose={onClose}>
+        <View className="flex-1 justify-end">
+          <TouchableOpacity activeOpacity={1} className="absolute inset-0 bg-[rgba(0,0,0,0.6)]" onPress={onClose} />
+          <View className="h-[88%] bg-surface dark:bg-gray-600 rounded-t-[32px] overflow-hidden">
+            {/* Visual Drag Indicator Strip */}
+            <View className="w-12 h-1 bg-gray-300 dark:bg-gray-500 rounded-full self-center mt-3 mb-1 opacity-50" />
+            
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
               {/* Header */}
               <View className="flex-row justify-between items-center mb-6 px-1">
@@ -697,7 +701,7 @@ export const BottomDrawer = ({
                 {headerSubmit ? (
                   <TouchableOpacity
                     onPress={onClose}
-                    className="w-9 h-9 rounded-full bg-bg items-center justify-center border border-border"
+                    className="w-9 h-9 rounded-full bg-bg dark:bg-gray-700 items-center justify-center border border-border dark:border-gray-600"
                   >
                     <MaterialIcons name="close" size={20} color="#656475" />
                   </TouchableOpacity>
@@ -727,7 +731,7 @@ export const BottomDrawer = ({
                 ) : (
                   <TouchableOpacity
                     onPress={onClose}
-                    className="w-8 h-8 rounded-full bg-brand-light justify-center items-center"
+                    className="w-8 h-8 rounded-full bg-brand-light dark:bg-gray-700 justify-center items-center"
                   >
                     <MaterialIcons name="close" size={20} color="#1a1a24" />
                   </TouchableOpacity>
@@ -743,7 +747,7 @@ export const BottomDrawer = ({
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={onDelete}
-                  className="w-full h-[54px] rounded-2xl border border-[#ffeded] bg-[#fff4f4] flex-row justify-center items-center mt-10 mb-4"
+                  className="w-full h-[54px] rounded-2xl border border-[#ffeded] bg-[#fff4f4] dark:bg-red-900 dark:border-red-800 flex-row justify-center items-center mt-10 mb-4"
                   style={{ shadowColor: '#ff3b30', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 }}
                 >
                   <MaterialIcons name="delete-sweep" size={22} color="#ff3b30" style={{ marginRight: 8 }} />
@@ -768,14 +772,14 @@ export const BottomDrawer = ({
               )}
             </ScrollView>
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
 
       {/* Date Picker Modal */}
       <Modal transparent visible={isDatePickerVisible} animationType="slide" onRequestClose={() => setDatePickerVisible(false)}>
         <View className="flex-1 justify-end">
           <TouchableOpacity activeOpacity={1} className="absolute inset-0 bg-[rgba(0,0,0,0.4)]" onPress={() => setDatePickerVisible(false)} />
-          <View className="bg-surface rounded-t-3xl p-5">
+          <View className="bg-surface dark:bg-gray-600 rounded-t-3xl p-5">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-[17px] font-extrabold text-dark dark:text-light">Select Date</Text>
               <TouchableOpacity onPress={() => setDatePickerVisible(false)}>

@@ -76,8 +76,11 @@ export default function DashboardScreen() {
   const [userId, setUserId] = useState((params.id as string) || '');
   const [email, setEmail] = useState((params.email as string) || '');
   const [userFirstName, setUserFirstName] = useState((params.firstName as string) || 'User');
+  const [userLastName, setUserLastName] = useState('');
+  const [userPhone, setUserPhone] = useState('');
   const [useCelsius, setUseCelsius] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [isEditProfileDrawerVisible, setIsEditProfileDrawerVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'wardrobe' | 'calendar' | 'ai' | 'settings'>('home');
   const [isCalendarConnected] = useState(false);  // false -> Schedule Your Calendar banner shown
   const [userEvents, setUserEvents] = useState<any[]>([]);
@@ -128,7 +131,7 @@ export default function DashboardScreen() {
         setIsSidebarVisible(false);
       });
     }
-  }, [sidebarOpen]);
+  }, [sidebarOpen, sidebarAnim]);
 
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number>(new Date().getDate());
   const [currentCalendarDate, setCurrentCalendarDate] = useState<Date>(new Date());
@@ -158,6 +161,13 @@ export default function DashboardScreen() {
     };
     loadData();
   }, [refreshTrigger]);
+
+  const editProfileFields: FormField[] = [
+    { name: 'firstName', label: 'First Name', type: 'text', required: true, halfWidth: true },
+    { name: 'lastName', label: 'Last Name', type: 'text', required: true, halfWidth: true },
+    { name: 'email', label: 'Email', type: 'email', required: true },
+    { name: 'phone', label: 'Phone Number', type: 'phone' }
+  ];
 
   const wardrobeFields: FormField[] = [
     { name: 'apparel_name', label: 'Apparel Name', type: 'text', required: true, icon: 'tag' },
@@ -440,6 +450,9 @@ export default function DashboardScreen() {
 
         // Finalize dynamic UI preferences using returned configuration
         if (userData) {
+          if (userData.firstName) setUserFirstName(userData.firstName);
+          if (userData.lastName) setUserLastName(userData.lastName);
+          if (userData.phone) setUserPhone(userData.phone);
           if (userData.useCelsius !== undefined) setUseCelsius(userData.useCelsius);
           if (userData.darkMode !== undefined) setDarkMode(userData.darkMode);
         }
@@ -448,6 +461,7 @@ export default function DashboardScreen() {
       }
     };
     loadSessionAndPreferences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleUpdatePreference = async (key: 'useCelsius' | 'darkMode', value: boolean) => {
@@ -462,6 +476,41 @@ export default function DashboardScreen() {
       await axiosInstance.post(`/users/${userId}/preferences`, { [key]: value });
     } catch (err) {
       console.error('Failed to sync user preference cluster', err);
+    }
+  };
+
+  const handleUpdateProfile = async (values: any) => {
+    try {
+      if (!userId) throw new Error('User ID is missing');
+      
+      const res = await axiosInstance.post(`/users/${userId}/profile`, {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phone: values.phone,
+      });
+
+      // Update Local State Immediately
+      if (res.data) {
+        if (res.data.firstName) setUserFirstName(res.data.firstName);
+        if (res.data.lastName) setUserLastName(res.data.lastName);
+        if (res.data.phone) setUserPhone(res.data.phone);
+        if (res.data.email) setEmail(res.data.email);
+        
+        // Also update existing session cache for deep persistence
+        const stored = await AsyncStorage.getItem('userSession');
+        if (stored) {
+          const updated = { ...JSON.parse(stored), ...res.data };
+          await AsyncStorage.setItem('userSession', JSON.stringify(updated));
+        }
+      }
+      
+      setIsEditProfileDrawerVisible(false);
+      Alert.alert('Success', 'Profile updated successfully');
+    } catch (error: any) {
+      console.error('Profile update failed:', error);
+      const msg = error.response?.data?.message || 'Could not update profile. Please try again.';
+      Alert.alert('Error', msg);
     }
   };
 
@@ -483,7 +532,7 @@ export default function DashboardScreen() {
               setWeatherLoading(false);
               return;
             }
-          } catch (e) {
+          } catch {
             console.warn('Cache parsing failed, refetching data...');
           }
         }
@@ -761,10 +810,14 @@ export default function DashboardScreen() {
           {activeTab === 'settings' && (
             <Settings
               email={email}
+              firstName={userFirstName}
+              lastName={userLastName}
+              phone={userPhone}
               handleDeleteAccount={handleDeleteAccount}
               useCelsius={useCelsius}
               darkMode={darkMode}
               onPreferenceChange={handleUpdatePreference}
+              onEditProfile={() => setIsEditProfileDrawerVisible(true)}
             />
           )}
         </ScrollView>
@@ -809,6 +862,20 @@ export default function DashboardScreen() {
           )}
         </>
       )}
+
+      <BottomDrawer
+        isVisible={isEditProfileDrawerVisible}
+        onClose={() => setIsEditProfileDrawerVisible(false)}
+        title="Edit Profile"
+        fields={editProfileFields}
+        initialValues={{
+          firstName: userFirstName,
+          lastName: userLastName,
+          email: email,
+          phone: userPhone
+        }}
+        onSubmit={handleUpdateProfile}
+      />
 
       <BottomDrawer
         isVisible={isAddEventDrawerVisible}

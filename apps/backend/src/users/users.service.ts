@@ -131,4 +131,37 @@ export class UsersService {
     const { password: _password, ...result } = updatedUser;
     return result;
   }
+
+  async updateProfile(id: number, updates: { firstName?: string, lastName?: string, email?: string, phone?: string }) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // If email is changing, verify it isn't taken
+    if (updates.email && updates.email !== user.email) {
+      const conflict = await this.prisma.user.findUnique({
+        where: { email: updates.email },
+      });
+      if (conflict) {
+        throw new ConflictException('Email address is already in use');
+      }
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(updates.firstName !== undefined && { firstName: updates.firstName }),
+        ...(updates.lastName !== undefined && { lastName: updates.lastName }),
+        ...(updates.email !== undefined && { email: updates.email }),
+        ...(updates.phone !== undefined && { phone: updates.phone }),
+      },
+    });
+
+    const { password: _password, ...result } = updatedUser;
+    return result;
+  }
 }
