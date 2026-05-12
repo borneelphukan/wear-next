@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
@@ -9,16 +10,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: '#5e5ce6',
-        'brand-soft': '#9d9cf4',
-        'brand-light': '#f1f0fc',
-        'brand-lighter': '#e3e1f5',
+        brand: '#3182ce', // blue-200
+        'brand-soft': '#63b3ed',
+        'brand-light': '#ebf8ff', // blue-400
+        'brand-lighter': '#bee3f8', // blue-300
         surface: '#ffffff',
         bg: '#f8f7fc',
         'bg-dark': '#0c0c12',
         'surface-dark': '#161623',
-        text: '#1a1a24',
-        'text-dark': '#f1f0ff',
         'text-muted': '#656475',
         'text-faint': '#8b8a9f',
         border: '#f0eff6',
@@ -27,6 +26,46 @@ module.exports = {
         'orange-bg': '#ffebe0',
         'red-accent': '#ff4d6d',
         'red-light': '#fee2e2',
+        
+        // Library Colors from main.css
+        'green-100': '#2b7860',
+        'green-200': '#04ad79',
+        'green-300': '#d8fdf2',
+        'green-400': '#f5fffc',
+        'blue-100': '#2c5282',
+        'blue-200': '#3182ce',
+        'blue-300': '#bee3f8',
+        'blue-400': '#ebf8ff',
+        'red-100': '#9b2c2c',
+        'red-200': '#e53e3e',
+        'red-300': '#fed7d7',
+        'red-400': '#fff5f5',
+        'yellow-100': '#975a16',
+        'yellow-200': '#facd1d',
+        'yellow-300': '#fefcbf',
+        'yellow-400': '#fffff0',
+        'indigo-100': '#434190',
+        'indigo-200': '#667eea',
+        'indigo-300': '#c3dafe',
+        'indigo-400': '#ebf4ff',
+        'gray-50': '#f8f9fa',
+        'gray-100': '#131317',
+        'gray-200': '#49494d',
+        'gray-300': '#bbbbbc',
+        'gray-400': '#e8e8e9',
+        'gray-500': '#eceff1',
+        'gray-600': '#374151',
+        'gray-700': '#1f2937',
+        'gray-800': '#111827',
+        'gray-900': '#030712',
+        'cyan-100': '#045d73',
+        'cyan-200': '#0bc5ea',
+        'cyan-300': '#cffafe',
+        'cyan-400': '#e0fcff',
+        'light': '#f9fafb',
+        'dark': '#111827',
+        'dark-100': '#28282c',
+        'dark-200': '#1a1a1e',
       },
       borderRadius: {
         '2xl': '16px',

@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "material-symbols/outlined.css";
+@import "tw-animate-css";
+
+@source "./components/**/*.tsx";
+
+@variant dark (.dark &);
+
+/* Essential for smooth transitions in interactive gradients */
+@property --btn-gp {
+  syntax: "<percentage>";
+  initial-value: 0%;
+  inherits: false;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme {
+  --color-green-100: #2b7860;
+  --color-green-200: #04ad79;
+  --color-green-300: #d8fdf2;
+  --color-green-400: #f5fffc;
+
+  --color-blue-100: #2c5282;
+  --color-blue-200: #3182ce;
+  --color-blue-300: #bee3f8;
+  --color-blue-400: #ebf8ff;
+
+  --color-red-100: #9b2c2c;
+  --color-red-200: #e53e3e;
+  --color-red-300: #fed7d7;
+  --color-red-400: #fff5f5;
+
+  --color-yellow-100: #975a16;
+  --color-yellow-200: #facd1d;
+  --color-yellow-300: #fefcbf;
+  --color-yellow-400: #fffff0;
+
+  --color-indigo-100: #434190;
+  --color-indigo-200: #667eea;
+  --color-indigo-300: #c3dafe;
+  --color-indigo-400: #ebf4ff;
+
+  --color-gray-50: #f8f9fa;
+  --color-gray-100: #131317;
+  --color-gray-200: #49494d;
+  --color-gray-300: #bbbbbc;
+  --color-gray-400: #e8e8e9;
+  --color-gray-500: #eceff1;
+  --color-gray-600: #374151;
+  --color-gray-700: #1f2937;
+  --color-gray-800: #111827;
+  --color-gray-900: #030712;
+
+  --color-cyan-100: #045d73;
+  --color-cyan-200: #0bc5ea;
+  --color-cyan-300: #cffafe;
+  --color-cyan-400: #e0fcff;
+
+  --color-light: #f9fafb;
+
+  --color-dark: #111827;
+  --color-dark-100: #28282c;
+  --color-dark-200: #1a1a1e;
+
+  /* App-Specific Core Colors */
+  --color-brand: #5e5ce6;
+  --color-brand-soft: #9d9cf4;
+  --color-brand-light: #f1f0fc;
+  --color-brand-lighter: #e3e1f5;
+  --color-surface: #ffffff;
+  --color-bg: #f8f7fc;
+  --color-bg-dark: #0c0c12;
+  --color-surface-dark: #161623;
+  --color-text: #1a1a24;
+  --color-text-dark: #f1f0ff;
+  --color-text-muted: #656475;
+  --color-text-faint: #8b8a9f;
+  --color-border: #f0eff6;
+  --color-border-brand: #e3e1f5;
+  --color-orange-accent: #e07a5f;
+  --color-orange-bg: #ffebe0;
+  --color-red-accent: #ff4d6d;
+  --color-red-light: #fee2e2;
+
+  /* Extended Border Radii */
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-4xl: 32px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}

@@ -139,17 +139,17 @@ export const AiTab: React.FC<Props> = ({ aiQuery, setAiQuery, weatherData }) => 
       {/* Header */}
       <View className="flex-row justify-between items-start mb-4">
         <View className="flex-1 mr-4">
-          <Text className="text-[22px] font-extrabold text-text mb-1.5">Styling Assistant</Text>
-          <Text className="text-[13px] text-text-muted font-semibold leading-[18px] max-w-[90%]">
+          <Text className="text-[22px] font-extrabold text-dark dark:text-light mb-1.5">Styling Assistant</Text>
+          <Text className="text-[13px] text-muted font-semibold leading-[18px] max-w-[90%] dark:text-light">
             Your personal editorial concierge for effortless fashion decisions.
           </Text>
         </View>
         {messages.length > 0 && (
           <TouchableOpacity
             onPress={() => setIsClearModalVisible(true)}
-            className="w-9 h-9 rounded-full bg-brand-light justify-center items-center"
+            className="w-9 h-9 rounded-full bg-brand-light dark:bg-gray-700 justify-center items-center"
           >
-            <MaterialCommunityIcons name="broom" size={18} color="#5e5ce6" />
+            <MaterialCommunityIcons name="broom" size={18} color="#3182ce" />
           </TouchableOpacity>
         )}
       </View>
@@ -164,13 +164,13 @@ export const AiTab: React.FC<Props> = ({ aiQuery, setAiQuery, weatherData }) => 
       >
         {messages.length === 0 ? (
           <View className="flex-1 justify-center items-center py-10">
-            <View className="w-[72px] h-[72px] rounded-full bg-brand-light justify-center items-center mb-5">
-              <MaterialCommunityIcons name="creation" size={40} color="#5e5ce6" />
+            <View className="w-[72px] h-[72px] rounded-full bg-brand-light dark:bg-gray-700 justify-center items-center mb-5">
+              <MaterialCommunityIcons name="creation" size={40} color="#3182ce" />
             </View>
-            <Text className="text-[20px] font-extrabold text-text mb-2 text-center">
+            <Text className="text-[20px] font-extrabold text-dark dark:text-light mb-2 text-center">
               How can I style you today?
             </Text>
-            <Text className="text-sm font-semibold text-text-faint text-center leading-5 max-w-[80%] mb-8">
+            <Text className="text-sm font-semibold text-faint text-center leading-5 max-w-[80%] mb-8 dark:text-light">
               Ask me anything about outfits, trends, or what to wear from your wardrobe.
             </Text>
 
@@ -179,13 +179,13 @@ export const AiTab: React.FC<Props> = ({ aiQuery, setAiQuery, weatherData }) => 
               {QUICK_PROMPTS.map((prompt) => (
                 <TouchableOpacity
                   key={prompt}
-                  className="w-[47%] bg-surface rounded-2xl p-4 border border-border-brand"
+                  className="w-[47%] bg-surface dark:bg-gray-600 rounded-2xl p-4 border border-border-brand dark:border-gray-600"
                   style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1 }}
                   onPress={() => sendMessage(prompt)}
                   activeOpacity={0.7}
                 >
-                  <MaterialCommunityIcons name="lightning-bolt" size={14} color="#5e5ce6" style={{ marginBottom: 6 }} />
-                  <Text className="text-[13px] font-bold text-text leading-[18px]">{prompt}</Text>
+                  <MaterialCommunityIcons name="lightning-bolt" size={14} color="#3182ce" style={{ marginBottom: 6 }} />
+                  <Text className="text-[13px] font-bold text-dark dark:text-light leading-[18px]">{prompt}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -208,12 +208,12 @@ export const AiTab: React.FC<Props> = ({ aiQuery, setAiQuery, weatherData }) => 
               <View
                 className={
                   msg.role === 'user'
-                    ? 'self-end bg-[#eef0f5] rounded-[20px] rounded-tr-sm py-3 px-4 max-w-[85%]'
-                    : 'self-start bg-surface rounded-[20px] rounded-tl-sm py-3.5 px-4 max-w-[90%] border border-border mb-2'
+                    ? 'self-end bg-[#eef0f5] dark:bg-gray-700 rounded-[20px] rounded-tr-sm py-3 px-4 max-w-[85%]'
+                    : 'self-start bg-surface dark:bg-gray-600 rounded-[20px] rounded-tl-sm py-3.5 px-4 max-w-[90%] border border-border dark:border-gray-600 mb-2'
                 }
                 style={msg.role === 'assistant' ? { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 6, elevation: 2 } : undefined}
               >
-                <Text className={`text-[14px] leading-5 ${msg.role === 'user' ? 'text-text font-semibold' : 'text-text font-semibold'}`}>
+                <Text className={`text-[14px] leading-5 ${msg.role === 'user' ? 'text-dark dark:text-light font-semibold' : 'text-dark dark:text-light font-semibold'}`}>
                   {msg.role === 'user' ? msg.content : renderFormattedText(msg.content)}
                 </Text>
               </View>
@@ -221,26 +221,26 @@ export const AiTab: React.FC<Props> = ({ aiQuery, setAiQuery, weatherData }) => 
               {/* Recommended Items */}
               {msg.role === 'assistant' && msg.recommendedItems && msg.recommendedItems.length > 0 && (
                 <View className="w-full mt-2 mb-4 pl-1">
-                  <Text className="text-[11px] font-extrabold text-text-faint tracking-wider mb-2">
+                  <Text className="text-[11px] font-extrabold text-faint tracking-wider mb-2 dark:text-light">
                     RECOMMENDED FROM YOUR CLOSET
                   </Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     {msg.recommendedItems.map((item: any) => (
                       <View
                         key={item.id}
-                        className="flex-row bg-surface rounded-2xl border-[1.5px] border-border-brand p-2.5 mr-3 w-[240px] items-center"
+                        className="flex-row bg-surface dark:bg-gray-600 rounded-2xl border-[1.5px] border-border-brand dark:border-gray-600 p-2.5 mr-3 w-[240px] items-center"
                         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 2 }}
                       >
                         <Image
                           source={{ uri: item.photo || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80' }}
-                          className="w-16 h-16 rounded-xl bg-brand-light"
+                          className="w-16 h-16 rounded-xl bg-brand-light dark:bg-gray-700"
                           resizeMode="cover"
                         />
                         <View className="flex-1 ml-3 justify-center">
-                          <Text className="text-[13px] font-extrabold text-text mb-0.5" numberOfLines={1}>{item.apparel_name}</Text>
-                          <Text className="text-[11px] font-semibold text-text-muted mb-1.5">{item.material} • {item.color}</Text>
-                          <View className="flex-row items-center gap-1 bg-brand-light px-2 py-0.5 rounded-lg self-start">
-                            <MaterialCommunityIcons name="hanger" size={10} color="#5e5ce6" />
+                          <Text className="text-[13px] font-extrabold text-dark dark:text-light mb-0.5" numberOfLines={1}>{item.apparel_name}</Text>
+                          <Text className="text-[11px] font-semibold text-muted dark:text-light mb-1.5">{item.material} • {item.color}</Text>
+                          <View className="flex-row items-center gap-1 bg-brand-light dark:bg-gray-800 px-2 py-0.5 rounded-lg self-start">
+                            <MaterialCommunityIcons name="hanger" size={10} color="#3182ce" />
                             <Text className="text-[9px] font-extrabold text-brand">Wardrobe Item</Text>
                           </View>
                         </View>
@@ -262,9 +262,9 @@ export const AiTab: React.FC<Props> = ({ aiQuery, setAiQuery, weatherData }) => 
               </View>
               <Text className="text-[11px] font-extrabold text-brand tracking-wider">AI STYLIST</Text>
             </View>
-            <View className="flex-row items-center self-start bg-surface rounded-[20px] rounded-tl-sm py-3.5 px-4 border border-border gap-2.5">
-              <ActivityIndicator size="small" color="#5e5ce6" />
-              <Text className="text-[13px] font-semibold text-text-faint italic">Curating your look...</Text>
+            <View className="flex-row items-center self-start bg-surface dark:bg-gray-600 rounded-[20px] rounded-tl-sm py-3.5 px-4 border border-border dark:border-gray-600 gap-2.5">
+              <ActivityIndicator size="small" color="#3182ce" />
+              <Text className="text-[13px] font-semibold text-faint italic dark:text-light">Curating your look...</Text>
             </View>
           </View>
         )}
@@ -275,13 +275,13 @@ export const AiTab: React.FC<Props> = ({ aiQuery, setAiQuery, weatherData }) => 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={100}
       >
-        <View className="flex-row items-center py-3 border-t border-border mb-[75px]">
-          <View className="flex-1 flex-row items-center bg-[#f1f0f6] rounded-full px-4 h-11 mr-2.5">
+        <View className="flex-row items-center py-3 border-t border-border dark:border-gray-700 mb-[75px]">
+          <View className="flex-1 flex-row items-center bg-[#f1f0f6] dark:bg-gray-700 rounded-full px-4 h-11 mr-2.5">
             <MaterialCommunityIcons name="plus-circle-outline" size={20} color="#8b8a9f" />
             <TextInput
               placeholder="Ask your stylist..."
               placeholderTextColor="#8b8a9f"
-              className="flex-1 text-[14px] text-text ml-2"
+              className="flex-1 text-[14px] text-dark dark:text-light ml-2"
               value={aiQuery}
               onChangeText={setAiQuery}
               onSubmitEditing={() => sendMessage()}

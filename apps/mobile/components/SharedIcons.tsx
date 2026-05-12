@@ -1,7 +1,7 @@
 import React from 'react';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 
-export const MenuIcon = ({ color = '#5e5ce6', size = 24 }) => (
+export const MenuIcon = ({ color = '#3182ce', size = 24 }) => (
   <MaterialIcons name="menu" size={size} color={color} />
 );
 
@@ -33,11 +33,11 @@ export const CloudIcon = ({ color = '#8b8a9f', size = 28 }) => (
   <MaterialIcons name="cloud" size={size} color={color} />
 );
 
-export const SparkleIcon = ({ color = '#5e5ce6', size = 18 }: { color?: string, size?: number }) => (
+export const SparkleIcon = ({ color = '#3182ce', size = 18 }: { color?: string, size?: number }) => (
   <MaterialIcons name="auto-awesome" size={size} color={color} />
 );
 
-export const TrendIcon = ({ color = '#5e5ce6', size = 18 }) => (
+export const TrendIcon = ({ color = '#3182ce', size = 18 }) => (
   <MaterialIcons name="trending-up" size={size} color={color} />
 );
 
@@ -57,31 +57,31 @@ export const RightArrowIcon = ({ color = '#1a1a24', size = 20 }) => (
   <MaterialIcons name="arrow-forward-ios" size={size} color={color} />
 );
 
-export const BulbIcon = ({ color = '#5e5ce6', size = 22 }) => (
+export const BulbIcon = ({ color = '#3182ce', size = 22 }) => (
   <MaterialIcons name="lightbulb" size={size} color={color} />
 );
 
 export const HomeNavIcon = ({ active }: { active: boolean }) => (
-  <MaterialIcons name="home" size={22} color={active ? '#5e5ce6' : '#8e8ea0'} />
+  <MaterialIcons name="home" size={22} color={active ? '#3182ce' : '#8e8ea0'} />
 );
 
 export const WardrobeNavIcon = ({ active }: { active: boolean }) => (
-  <MaterialIcons name="checkroom" size={22} color={active ? '#5e5ce6' : '#8e8ea0'} />
+  <MaterialIcons name="checkroom" size={22} color={active ? '#3182ce' : '#8e8ea0'} />
 );
 
 export const CalendarNavIcon = ({ active }: { active: boolean }) => (
-  <MaterialIcons name="calendar-today" size={22} color={active ? '#5e5ce6' : '#8e8ea0'} />
+  <MaterialIcons name="calendar-today" size={22} color={active ? '#3182ce' : '#8e8ea0'} />
 );
 
 export const AiNavIcon = ({ active }: { active: boolean }) => (
-  <MaterialIcons name="auto-awesome" size={22} color={active ? '#5e5ce6' : '#8e8ea0'} />
+  <MaterialIcons name="auto-awesome" size={22} color={active ? '#3182ce' : '#8e8ea0'} />
 );
 
 export const SettingsNavIcon = ({ active }: { active: boolean }) => (
-  <MaterialIcons name="settings" size={22} color={active ? '#5e5ce6' : '#8e8ea0'} />
+  <MaterialIcons name="settings" size={22} color={active ? '#3182ce' : '#8e8ea0'} />
 );
 
-export const WaterDropIcon = ({ color = '#5e5ce6', size = 18 }) => (
+export const WaterDropIcon = ({ color = '#3182ce', size = 18 }) => (
   <MaterialIcons name="water-drop" size={size} color={color} />
 );
 
@@ -97,7 +97,7 @@ export const CirclePlusIcon = ({ color = '#8b8a9f', size = 20 }) => (
   <MaterialIcons name="add-circle-outline" size={size} color={color} />
 );
 
-export const HangerIcon = ({ color = '#5e5ce6', size = 24 }) => (
+export const HangerIcon = ({ color = '#3182ce', size = 24 }) => (
   <MaterialCommunityIcons name="hanger" size={size} color={color} />
 );
 

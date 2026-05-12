@@ -95,33 +95,33 @@ export default function LoginScreen() {
 
           {/* Logo Card */}
           <View className="w-[90px] h-[90px] rounded-[22px] bg-surface justify-center items-center mb-6"
-            style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 3 }}
+            style={{ shadowColor: '#3182ce', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 3 }}
           >
-            <MaterialCommunityIcons name="hanger" size={36} color="#5e5ce6" />
+            <MaterialCommunityIcons name="hanger" size={36} color="#3182ce" />
           </View>
 
-          <Text className="text-[32px] font-black text-text tracking-tight mb-3">WearNext</Text>
-          <Text className="text-[15px] text-text-muted text-center leading-6 mb-9 px-4 font-medium">
+          <Text className="text-[32px] font-black text-dark tracking-tight mb-3 dark:text-light">WearNext</Text>
+          <Text className="text-[15px] text-muted text-center leading-6 mb-9 px-4 font-medium dark:text-light">
             Your sophisticated digital concierge for an effortless wardrobe.
           </Text>
 
           {/* Google Button */}
           <TouchableOpacity className="flex-row w-full h-[52px] bg-[#eae9f1] rounded-full justify-center items-center mb-4">
             <MaterialIcons name="mail" size={18} color="#1a1a24" style={{ marginRight: 10 }} />
-            <Text className="text-text text-base font-semibold">Continue with Google</Text>
+            <Text className="text-dark text-base font-semibold dark:text-light">Continue with Google</Text>
           </TouchableOpacity>
 
           {/* OR Separator */}
           <View className="flex-row items-center my-6 w-full px-2">
             <View className="flex-1 h-px bg-[#e3e1ea]" />
-            <Text className="text-[11px] font-extrabold text-text-faint mx-4 tracking-widest">OR</Text>
+            <Text className="text-[11px] font-extrabold text-faint mx-4 tracking-widest dark:text-light">OR</Text>
             <View className="flex-1 h-px bg-[#e3e1ea]" />
           </View>
 
           {/* Email Button */}
           <TouchableOpacity
             className="flex-row w-full h-[52px] bg-brand rounded-full justify-center items-center mb-5"
-            style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 3 }}
+            style={{ shadowColor: '#3182ce', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 3 }}
             onPress={() => setAuthStep('login')}
           >
             <MaterialIcons name="mail" size={18} color="#ffffff" style={{ marginRight: 10 }} />
@@ -130,23 +130,23 @@ export default function LoginScreen() {
 
           {/* Toggle */}
           <View className="flex-row justify-center items-center mt-2 mb-1">
-            <Text className="text-text-muted text-[15px] font-medium">{"Don't have an account? "}</Text>
+            <Text className="text-muted text-[15px] font-medium dark:text-light">{"Don't have an account? "}</Text>
             <TouchableOpacity onPress={() => setAuthStep('register')}>
               <Text className="text-brand text-[15px] font-extrabold">Sign Up</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity className="my-2 py-1">
-            <Text className="text-text-muted text-sm font-semibold">Forgot Password?</Text>
+            <Text className="text-muted text-sm font-semibold dark:text-light">Forgot Password?</Text>
           </TouchableOpacity>
 
           {/* Disclaimer */}
           <View className="mt-auto pt-8 w-full">
             <Text className="text-[#8b8a9f] text-xs text-center leading-5 font-medium">
               {"By continuing, you agree to WearNext's "}
-              <Text className="underline text-text-muted font-semibold">Terms of Service</Text>
+              <Text className="underline text-muted font-semibold dark:text-light">Terms of Service</Text>
               {' and '}
-              <Text className="underline text-text-muted font-semibold">Privacy Policy</Text>.
+              <Text className="underline text-muted font-semibold dark:text-light">Privacy Policy</Text>.
             </Text>
           </View>
         </ScrollView>
@@ -167,7 +167,7 @@ export default function LoginScreen() {
             >
               <MaterialIcons name="arrow-back-ios" size={20} color="#222" />
             </TouchableOpacity>
-            <Text className="text-[18px] font-extrabold text-text">
+            <Text className="text-[18px] font-extrabold text-dark dark:text-light">
               {authStep === 'login' ? 'Log in with Email' : 'Create Account'}
             </Text>
             <View className="w-10" />
@@ -180,25 +180,25 @@ export default function LoginScreen() {
           >
             {authStep === 'register' && (
               <>
-                <Text className="text-[13px] font-semibold text-text-muted mb-2 uppercase tracking-widest">First Name</Text>
+                <Text className="text-[13px] font-semibold text-muted mb-2 uppercase tracking-widest dark:text-light">First Name</Text>
                 <TextInput
-                  className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-text text-[15px] mb-5"
+                  className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-dark text-[15px] mb-5 dark:text-light"
                   placeholder="First Name"
                   placeholderTextColor="#888"
                   value={firstName}
                   onChangeText={setFirstName}
                 />
-                <Text className="text-[13px] font-semibold text-text-muted mb-2 uppercase tracking-widest">Last Name</Text>
+                <Text className="text-[13px] font-semibold text-muted mb-2 uppercase tracking-widest dark:text-light">Last Name</Text>
                 <TextInput
-                  className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-text text-[15px] mb-5"
+                  className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-dark text-[15px] mb-5 dark:text-light"
                   placeholder="Last Name"
                   placeholderTextColor="#888"
                   value={lastName}
                   onChangeText={setLastName}
                 />
-                <Text className="text-[13px] font-semibold text-text-muted mb-2 uppercase tracking-widest">Phone (Optional)</Text>
+                <Text className="text-[13px] font-semibold text-muted mb-2 uppercase tracking-widest dark:text-light">Phone (Optional)</Text>
                 <TextInput
-                  className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-text text-[15px] mb-5"
+                  className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-dark text-[15px] mb-5 dark:text-light"
                   placeholder="Phone"
                   placeholderTextColor="#888"
                   keyboardType="phone-pad"
@@ -208,9 +208,9 @@ export default function LoginScreen() {
               </>
             )}
 
-            <Text className="text-[13px] font-semibold text-text-muted mb-2 uppercase tracking-widest">Email Address</Text>
+            <Text className="text-[13px] font-semibold text-muted mb-2 uppercase tracking-widest dark:text-light">Email Address</Text>
             <TextInput
-              className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-text text-[15px] mb-5"
+              className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-dark text-[15px] mb-5 dark:text-light"
               placeholder="name@example.com"
               placeholderTextColor="#888"
               keyboardType="email-address"
@@ -219,9 +219,9 @@ export default function LoginScreen() {
               onChangeText={setEmail}
             />
 
-            <Text className="text-[13px] font-semibold text-text-muted mb-2 uppercase tracking-widest">Password</Text>
+            <Text className="text-[13px] font-semibold text-muted mb-2 uppercase tracking-widest dark:text-light">Password</Text>
             <TextInput
-              className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-text text-[15px] mb-5"
+              className="h-[50px] bg-bg border border-border-brand rounded-xl px-4 text-dark text-[15px] mb-5 dark:text-light"
               placeholder="••••••••"
               placeholderTextColor="#888"
               secureTextEntry
@@ -232,7 +232,7 @@ export default function LoginScreen() {
 
             <TouchableOpacity
               className="bg-brand h-[50px] rounded-full justify-center items-center mt-2 mb-5"
-              style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 3 }}
+              style={{ shadowColor: '#3182ce', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 3 }}
               onPress={authStep === 'login' ? handleLogin : handleRegister}
             >
               <Text className="text-white text-base font-bold">
@@ -241,7 +241,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View className="flex-row justify-center items-center mt-1 mb-1">
-              <Text className="text-text-muted text-[15px] font-medium">
+              <Text className="text-muted text-[15px] font-medium dark:text-light">
                 {authStep === 'login' ? "Don't have an account? " : "Already have an account? "}
               </Text>
               <TouchableOpacity onPress={() => setAuthStep(authStep === 'login' ? 'register' : 'login')}>

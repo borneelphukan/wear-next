@@ -54,13 +54,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             <MaterialCommunityIcons
               name={iconName}
               size={28}
-              color={isDestructive ? '#ff4d4f' : '#5e5ce6'}
+              color={isDestructive ? '#ff4d4f' : '#3182ce'}
             />
           </View>
 
           {/* Content */}
-          <Text className="text-[18px] font-extrabold text-text mb-2 text-center">{title}</Text>
-          <Text className="text-[13px] font-semibold text-text-muted leading-5 text-center mb-6">{message}</Text>
+          <Text className="text-[18px] font-extrabold text-dark mb-2 text-center dark:text-light">{title}</Text>
+          <Text className="text-[13px] font-semibold text-muted leading-5 text-center mb-6 dark:text-light">{message}</Text>
 
           {/* Actions */}
           <View className="flex-row gap-3 w-full">
@@ -69,7 +69,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               activeOpacity={0.8}
               className="flex-1 h-11 rounded-full border-[1.5px] border-border-brand bg-surface justify-center items-center"
             >
-              <Text className="text-[13px] font-extrabold text-text-muted">{cancelText}</Text>
+              <Text className="text-[13px] font-extrabold text-muted dark:text-light">{cancelText}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

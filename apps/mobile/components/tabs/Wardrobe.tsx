@@ -74,18 +74,18 @@ export const Wardrobe: React.FC<Props> = ({
     <View className="px-5 pt-4 pb-10">
       {/* Search + Ethnic Toggle */}
       <View className="flex-row justify-between items-center mb-4">
-        <View className="flex-1 flex-row items-center bg-[#f1f0f6] rounded-[14px] px-3 h-11 mr-3">
+        <View className="flex-1 flex-row items-center bg-[#f1f0f6] dark:bg-gray-700 rounded-[14px] px-3 h-11 mr-3">
           <SearchIcon />
           <TextInput
             placeholder="Search wardrobe..."
             placeholderTextColor="#8b8a9f"
-            className="flex-1 text-[14px] text-text ml-2"
+            className="flex-1 text-[14px] text-dark dark:text-light ml-2"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
-        <View className="flex-row items-center bg-[#f1f0f6] rounded-full px-4 h-11">
-          <Text className="text-xs font-extrabold text-text-muted tracking-wide mr-2">ETHNIC</Text>
+        <View className="flex-row items-center bg-[#f1f0f6] dark:bg-gray-700 rounded-full px-4 h-11">
+          <Text className="text-xs font-extrabold text-muted tracking-wide mr-2 dark:text-light">ETHNIC</Text>
           <TouchableOpacity
             className={`w-[38px] h-[22px] rounded-full p-0.5 justify-center ${ethnicOnly ? 'bg-brand' : 'bg-[#d1d1d6]'}`}
             onPress={() => setEthnicOnly(!ethnicOnly)}
@@ -108,12 +108,12 @@ export const Wardrobe: React.FC<Props> = ({
           <TouchableOpacity
             key={key}
             className={`flex-row items-center px-4 py-2 rounded-full mr-2 h-9 ${
-              selectedFilter === key ? 'bg-brand' : 'bg-[#f1f0f6]'
+              selectedFilter === key ? 'bg-brand' : 'bg-[#f1f0f6] dark:bg-gray-700'
             }`}
             onPress={() => setSelectedFilter(key)}
           >
             {icon && <FilterIcon />}
-            <Text className={`text-[13px] font-bold ml-1 ${selectedFilter === key ? 'text-white' : 'text-text-muted'}`}>
+            <Text className={`text-[13px] font-bold ml-1 ${selectedFilter === key ? 'text-white' : 'text-muted'} dark:text-light`}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -124,7 +124,7 @@ export const Wardrobe: React.FC<Props> = ({
       {selectedFilter !== 'all' && (
         <View className="gap-1 mt-3">
           {loading ? (
-            <ActivityIndicator size="large" color="#5e5ce6" style={{ marginTop: 20 }} />
+            <ActivityIndicator size="large" color="#3182ce" style={{ marginTop: 20 }} />
           ) : (
             subOptions.map((option) => {
               const sectionItems = wardrobeItems.filter((item) => {
@@ -140,31 +140,31 @@ export const Wardrobe: React.FC<Props> = ({
               return (
                 <View
                   key={option}
-                  className="bg-surface rounded-2xl overflow-hidden border border-border-brand mb-3"
+                  className="bg-surface dark:bg-gray-600 rounded-2xl overflow-hidden border border-border-brand dark:border-gray-600 mb-3"
                   style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 2 }}
                 >
                   <TouchableOpacity
                     onPress={() => toggleSection(option)}
                     activeOpacity={0.7}
-                    className="flex-row justify-between items-center p-4 bg-[#f5f4fd]"
+                    className="flex-row justify-between items-center p-4 bg-[#f5f4fd] dark:bg-gray-700"
                   >
                     <View className="flex-row items-center gap-2">
                       <View className="w-2 h-2 rounded-full bg-brand" />
-                      <Text className="text-base font-extrabold text-text">{option}</Text>
-                      <Text className="text-xs font-semibold text-text-faint">
+                      <Text className="text-base font-extrabold text-dark dark:text-light">{option}</Text>
+                      <Text className="text-xs font-semibold text-faint dark:text-light">
                         ({sectionItems.length} {sectionItems.length === 1 ? 'item' : 'items'})
                       </Text>
                     </View>
                     <MaterialCommunityIcons name={isCollapsed ? 'chevron-down' : 'chevron-up'} size={20} color="#656475" />
                   </TouchableOpacity>
                   {!isCollapsed && (
-                    <View className="p-4 bg-surface">
+                    <View className="p-4 bg-surface dark:bg-gray-600">
                       <View className="flex-row flex-wrap justify-between">
                         {sectionItems.map((item, idx) => (
-                          <View key={item.id || idx} className="w-[31%] aspect-square bg-surface rounded-2xl p-1.5 mb-3"
+                          <View key={item.id || idx} className="w-[31%] aspect-square bg-surface dark:bg-gray-700 rounded-2xl p-1.5 mb-3"
                             style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 4, elevation: 1 }}
                           >
-                            <View className="w-full h-full rounded-xl overflow-hidden bg-[#fcfbfd] relative">
+                            <View className="w-full h-full rounded-xl overflow-hidden bg-[#fcfbfd] dark:bg-gray-800 relative">
                               <Image
                                 source={{ uri: item.photo || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80' }}
                                 className="w-full h-full"
@@ -192,7 +192,7 @@ export const Wardrobe: React.FC<Props> = ({
             });
             return items.length === 0;
           }) && !loading && (
-            <Text className="text-center mt-6 text-text-faint font-semibold">No classified items found in this section.</Text>
+            <Text className="text-center mt-6 text-faint font-semibold dark:text-light">No classified items found in this section.</Text>
           )}
         </View>
       )}
@@ -204,15 +204,15 @@ export const Wardrobe: React.FC<Props> = ({
           <View className="flex-row justify-between mb-3">
             {/* Large Tops Card */}
             <TouchableOpacity
-              className={`flex-1 h-[170px] rounded-[20px] p-4 justify-between mr-3 ${activeCategory === 'Tops' ? 'border-2 border-brand bg-brand-lighter' : 'bg-[#f5f4fd]'}`}
+              className={`flex-1 h-[170px] rounded-[20px] p-4 justify-between mr-3 ${activeCategory === 'Tops' ? 'border-2 border-brand bg-brand-lighter' : 'bg-[#f5f4fd] dark:bg-gray-700'}`}
               onPress={() => setActiveCategory(activeCategory === 'Tops' ? null : 'Tops')}
             >
-              <View className="w-10 h-10 rounded-xl bg-surface justify-center items-center">
+              <View className="w-10 h-10 rounded-xl bg-surface dark:bg-gray-600 justify-center items-center">
                 <HangerIcon />
               </View>
               <View>
-                <Text className="text-base font-extrabold text-text">Tops</Text>
-                <Text className="text-xs font-semibold text-text-faint mt-0.5">{countByCategory.Tops} items</Text>
+                <Text className="text-base font-extrabold text-dark dark:text-light">Tops</Text>
+                <Text className="text-xs font-semibold text-faint mt-0.5 dark:text-light">{countByCategory.Tops} items</Text>
               </View>
             </TouchableOpacity>
 
@@ -224,12 +224,12 @@ export const Wardrobe: React.FC<Props> = ({
               ].map(({ key, Icon }) => (
                 <TouchableOpacity
                   key={key}
-                  className={`flex-row justify-between items-center rounded-2xl p-4 h-[78px] ${activeCategory === key ? 'border-2 border-brand bg-brand-lighter' : 'bg-[#f5f4fd]'}`}
+                  className={`flex-row justify-between items-center rounded-2xl p-4 h-[78px] ${activeCategory === key ? 'border-2 border-brand bg-brand-lighter' : 'bg-[#f5f4fd] dark:bg-gray-700'}`}
                   onPress={() => setActiveCategory(activeCategory === key ? null : key)}
                 >
                   <View>
-                    <Text className="text-base font-extrabold text-text">{key}</Text>
-                    <Text className="text-xs font-semibold text-text-faint mt-0.5">{countByCategory[key as keyof typeof countByCategory]} items</Text>
+                    <Text className="text-base font-extrabold text-dark dark:text-light">{key}</Text>
+                    <Text className="text-xs font-semibold text-faint mt-0.5 dark:text-light">{countByCategory[key as keyof typeof countByCategory]} items</Text>
                   </View>
                   <Icon />
                 </TouchableOpacity>
@@ -246,11 +246,11 @@ export const Wardrobe: React.FC<Props> = ({
             ].map(({ key, Icon }) => (
               <TouchableOpacity
                 key={key}
-                className={`flex-1 flex-row items-center justify-center rounded-2xl py-3 h-[52px] mx-1 ${activeCategory === key ? 'border-2 border-brand bg-brand-lighter' : 'bg-[#f5f4fd]'}`}
+                className={`flex-1 flex-row items-center justify-center rounded-2xl py-3 h-[52px] mx-1 ${activeCategory === key ? 'border-2 border-brand bg-brand-lighter' : 'bg-[#f5f4fd] dark:bg-gray-700'}`}
                 onPress={() => setActiveCategory(activeCategory === key ? null : key)}
               >
                 <Icon />
-                <Text className="text-xs font-extrabold text-text ml-1.5">
+                <Text className="text-xs font-extrabold text-dark dark:text-light ml-1.5">
                   {key} ({countByCategory[key as keyof typeof countByCategory]})
                 </Text>
               </TouchableOpacity>
@@ -262,21 +262,21 @@ export const Wardrobe: React.FC<Props> = ({
       {/* All Items Grid */}
       {selectedFilter === 'all' && (
         <View className="mb-8">
-          <Text className="text-[18px] font-extrabold text-text mb-4">All Items</Text>
+          <Text className="text-[18px] font-extrabold text-dark dark:text-light mb-4">All Items</Text>
           {loading ? (
-            <ActivityIndicator size="large" color="#5e5ce6" style={{ marginTop: 20 }} />
+            <ActivityIndicator size="large" color="#3182ce" style={{ marginTop: 20 }} />
           ) : (
             <View className="flex-row flex-wrap justify-between">
               {filteredItems.length === 0 ? (
-                <Text className="text-center mt-5 text-text-faint w-full">No items found.</Text>
+                <Text className="text-center mt-5 text-faint w-full dark:text-light">No items found.</Text>
               ) : (
                 filteredItems.map((item, idx) => (
                   <View
                     key={item.id || idx}
-                    className="w-[31%] aspect-square bg-surface rounded-2xl p-1.5 mb-3"
+                    className="w-[31%] aspect-square bg-surface dark:bg-gray-600 rounded-2xl p-1.5 mb-3"
                     style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 4, elevation: 1 }}
                   >
-                    <View className="w-full h-full rounded-xl overflow-hidden bg-[#fcfbfd] relative">
+                    <View className="w-full h-full rounded-xl overflow-hidden bg-[#fcfbfd] dark:bg-gray-700 relative">
                       <Image
                         source={{ uri: item.photo || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80' }}
                         className="w-full h-full"

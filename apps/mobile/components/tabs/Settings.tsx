@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Switch, ScrollView, Image, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Switch } from '@wear-next/ui';
 
 interface Props {
   styles?: any; // kept for backward compat but unused
@@ -67,37 +68,37 @@ export const Settings: React.FC<Props> = ({
 
       {/* Avatar Header Card */}
       <View
-        className="bg-surface rounded-[28px] p-6 items-center mb-8"
+        className="bg-surface dark:bg-gray-600 rounded-[28px] p-6 items-center mb-8"
         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.03, shadowRadius: 20, elevation: 3 }}
       >
         <View className="relative mb-4">
-          <View className="p-1 rounded-full border-2 border-[#5e5ce620]">
+          <View className="p-1 rounded-full border-2 border-[#3182ce20]">
             <Image
               source={{ uri: 'https://ui-avatars.com/api/?name=' + capitalizedName + '&background=5e5ce6&color=fff&size=128' }}
               className="w-20 h-20 rounded-full bg-[#f1f0ff]"
             />
           </View>
-          <TouchableOpacity className="absolute bottom-0.5 right-0.5 bg-brand w-7 h-7 rounded-full justify-center items-center border-[3px] border-surface">
+          <TouchableOpacity className="absolute bottom-0.5 right-0.5 bg-brand w-7 h-7 rounded-full justify-center items-center border-[3px] border-surface dark:border-gray-600">
             <MaterialCommunityIcons name="camera" size={14} color="#ffffff" />
           </TouchableOpacity>
         </View>
 
-        <Text className="text-[20px] font-extrabold text-text mb-1">{capitalizedName}</Text>
-        <Text className="text-sm text-text-faint font-medium mb-5">{email || 'wearnext@example.com'}</Text>
+        <Text className="text-[20px] font-extrabold text-dark dark:text-light mb-1">{capitalizedName}</Text>
+        <Text className="text-sm text-faint dark:text-light font-medium mb-5">{email || 'wearnext@example.com'}</Text>
 
-        <TouchableOpacity className="bg-[#f5f4fd] px-6 py-2.5 rounded-full">
-          <Text className="text-brand font-bold text-[13px]">Edit Profile</Text>
+        <TouchableOpacity className="bg-[#f5f4fd] dark:bg-gray-700 px-6 py-2.5 rounded-full">
+          <Text className="text-brand dark:text-brand-soft font-bold text-[13px]">Edit Profile</Text>
         </TouchableOpacity>
       </View>
 
       {/* App Preferences */}
-      <Text className="text-[11px] font-extrabold text-text-faint tracking-widest ml-3 mb-2.5">APP PREFERENCES</Text>
+      <Text className="text-[11px] font-extrabold text-faint tracking-widest ml-3 mb-2.5 dark:text-light">APP PREFERENCES</Text>
       <View
-        className="bg-surface rounded-3xl overflow-hidden mb-7"
+        className="bg-surface dark:bg-gray-600 rounded-3xl overflow-hidden mb-7"
         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2 }}
       >
         {[
-          { icon: 'bell-outline', iconBg: '#eef2ff', iconColor: '#5e5ce6', label: 'Push Notifications', value: pushEnabled, onChange: setPushEnabled, trackOn: '#5e5ce6' },
+          { icon: 'bell-outline', iconBg: '#eef2ff', iconColor: '#3182ce', label: 'Push Notifications', value: pushEnabled, onChange: setPushEnabled, trackOn: '#3182ce' },
           { icon: 'thermometer', iconBg: '#fff7ed', iconColor: '#ea580c', label: 'Use Celsius (°C)', value: useCelsius, onChange: (v: boolean) => onPreferenceChange('useCelsius', v), trackOn: '#f97316' },
           { icon: 'weather-night', iconBg: '#f3f4f6', iconColor: '#374151', label: 'Dark Mode', value: darkMode, onChange: (v: boolean) => onPreferenceChange('darkMode', v), trackOn: '#374151' },
         ].map((opt, i, arr) => (
@@ -107,24 +108,22 @@ export const Settings: React.FC<Props> = ({
                 <View className="w-[38px] h-[38px] rounded-xl justify-center items-center mr-4" style={{ backgroundColor: opt.iconBg }}>
                   <MaterialCommunityIcons name={opt.icon as any} size={20} color={opt.iconColor} />
                 </View>
-                <Text className="text-[15px] font-semibold text-text">{opt.label}</Text>
+                <Text className="text-[15px] font-semibold text-dark dark:text-light">{opt.label}</Text>
               </View>
               <Switch
-                value={opt.value}
-                onValueChange={opt.onChange}
-                trackColor={{ false: '#e3e1e9', true: opt.trackOn }}
-                thumbColor="#ffffff"
+                checked={opt.value}
+                onChange={opt.onChange}
               />
             </View>
-            {i < arr.length - 1 && <View className="h-px bg-[#f5f4fa] mx-5" />}
+            {i < arr.length - 1 && <View className="h-px bg-[#f5f4fa] dark:bg-gray-700 mx-5" />}
           </React.Fragment>
         ))}
       </View>
 
       {/* Smart Styling */}
-      <Text className="text-[11px] font-extrabold text-text-faint tracking-widest ml-3 mb-2.5">SMART STYLING</Text>
+      <Text className="text-[11px] font-extrabold text-faint tracking-widest ml-3 mb-2.5 dark:text-light">SMART STYLING</Text>
       <View
-        className="bg-surface rounded-3xl overflow-hidden mb-7"
+        className="bg-surface dark:bg-gray-600 rounded-3xl overflow-hidden mb-7"
         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2 }}
       >
         <TouchableOpacity className="flex-row justify-between items-center px-5 py-[18px]">
@@ -132,33 +131,33 @@ export const Settings: React.FC<Props> = ({
             <View className="w-[38px] h-[38px] rounded-xl bg-[#ecfdf5] justify-center items-center mr-4">
               <MaterialCommunityIcons name="palette-swatch-outline" size={20} color="#059669" />
             </View>
-            <View>
-              <Text className="text-[15px] font-semibold text-text">Preferred Event Profile</Text>
-              <Text className="text-xs font-medium text-text-faint mt-0.5">Casual, Formal, Active</Text>
+             <View>
+              <Text className="text-[15px] font-semibold text-dark dark:text-light">Preferred Event Profile</Text>
+              <Text className="text-xs font-medium text-faint dark:text-light mt-0.5">Casual, Formal, Active</Text>
             </View>
           </View>
           <MaterialCommunityIcons name="chevron-right" size={24} color="#8b8a9f" />
         </TouchableOpacity>
 
-        <View className="h-px bg-[#f5f4fa] mx-5" />
+        <View className="h-px bg-[#f5f4fa] dark:bg-gray-700 mx-5" />
 
         <TouchableOpacity className="flex-row justify-between items-center px-5 py-[18px]">
           <View className="flex-row items-center">
             <View className="w-[38px] h-[38px] rounded-xl bg-[#fef2f2] justify-center items-center mr-4">
               <MaterialCommunityIcons name="map-marker-outline" size={20} color="#dc2626" />
             </View>
-            <Text className="text-[15px] font-semibold text-text">Location Accuracy</Text>
+            <Text className="text-[15px] font-semibold text-dark dark:text-light">Location Accuracy</Text>
           </View>
-          <View className="bg-[#f0fdf4] px-2.5 py-1 rounded-xl">
-            <Text className="text-[#16a34a] text-xs font-bold">High</Text>
+          <View className="bg-[#f0fdf4] dark:bg-green-900 px-2.5 py-1 rounded-xl">
+            <Text className="text-[#16a34a] dark:text-green-300 text-xs font-bold">High</Text>
           </View>
         </TouchableOpacity>
       </View>
 
       {/* Support & Legal */}
-      <Text className="text-[11px] font-extrabold text-text-faint tracking-widest ml-3 mb-2.5">SUPPORT & LEGAL</Text>
+      <Text className="text-[11px] font-extrabold text-faint tracking-widest ml-3 mb-2.5 dark:text-light">SUPPORT & LEGAL</Text>
       <View
-        className="bg-surface rounded-3xl overflow-hidden mb-7"
+        className="bg-surface dark:bg-gray-600 rounded-3xl overflow-hidden mb-7"
         style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2 }}
       >
         <TouchableOpacity className="flex-row justify-between items-center px-5 py-[18px]">
@@ -166,19 +165,19 @@ export const Settings: React.FC<Props> = ({
             <View className="w-[38px] h-[38px] rounded-xl bg-[#f5f3ff] justify-center items-center mr-4">
               <MaterialCommunityIcons name="frequently-asked-questions" size={20} color="#7c3aed" />
             </View>
-            <Text className="text-[15px] font-semibold text-text">Help & FAQ</Text>
+            <Text className="text-[15px] font-semibold text-dark dark:text-light">Help & FAQ</Text>
           </View>
           <MaterialCommunityIcons name="chevron-right" size={24} color="#8b8a9f" />
         </TouchableOpacity>
 
-        <View className="h-px bg-[#f5f4fa] mx-5" />
+        <View className="h-px bg-[#f5f4fa] dark:bg-gray-700 mx-5" />
 
         <TouchableOpacity className="flex-row justify-between items-center px-5 py-[18px]">
           <View className="flex-row items-center">
             <View className="w-[38px] h-[38px] rounded-xl bg-[#e0f2fe] justify-center items-center mr-4">
               <MaterialCommunityIcons name="shield-check-outline" size={20} color="#0284c7" />
             </View>
-            <Text className="text-[15px] font-semibold text-text">Privacy Policy</Text>
+            <Text className="text-[15px] font-semibold text-dark dark:text-light">Privacy Policy</Text>
           </View>
           <MaterialCommunityIcons name="open-in-new" size={18} color="#8b8a9f" />
         </TouchableOpacity>
@@ -199,7 +198,7 @@ export const Settings: React.FC<Props> = ({
       <Modal visible={deleteModalVisible} transparent animationType="fade" onRequestClose={closeDeleteModal}>
         <View className="flex-1 bg-[rgba(0,0,0,0.55)] justify-center items-center px-7">
           <View
-            className="bg-surface rounded-[28px] p-7 w-full max-w-[380px] items-center"
+            className="bg-surface dark:bg-gray-600 rounded-[28px] p-7 w-full max-w-[380px] items-center"
             style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.12, shadowRadius: 40, elevation: 10 }}
           >
             <TouchableOpacity className="absolute top-4 right-4 p-1 z-10" onPress={closeDeleteModal}>
@@ -211,13 +210,13 @@ export const Settings: React.FC<Props> = ({
                 <View className="w-16 h-16 rounded-full bg-[#fef2f2] justify-center items-center mb-5 mt-1">
                   <MaterialCommunityIcons name="alert-circle-outline" size={36} color="#ef4444" />
                 </View>
-                <Text className="text-[19px] font-extrabold text-text mb-2.5 text-center">Delete Account?</Text>
-                <Text className="text-sm text-text-muted font-medium leading-[21px] text-center mb-6 px-1">
+                <Text className="text-[19px] font-extrabold text-dark dark:text-light mb-2.5 text-center">Delete Account?</Text>
+                <Text className="text-sm text-muted font-medium leading-[21px] text-center mb-6 px-1 dark:text-light">
                   This will permanently erase your wardrobe, preferences, and all personal data. This action cannot be undone.
                 </Text>
                 <View className="flex-row w-full gap-3 mt-2">
-                  <TouchableOpacity className="flex-1 bg-[#f5f4fd] rounded-2xl py-3.5 items-center" onPress={closeDeleteModal}>
-                    <Text className="text-text-muted font-bold text-sm">Cancel</Text>
+                  <TouchableOpacity className="flex-1 bg-[#f5f4fd] dark:bg-gray-700 rounded-2xl py-3.5 items-center" onPress={closeDeleteModal}>
+                    <Text className="text-muted dark:text-light font-bold text-sm">Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-1 bg-[#ef4444] rounded-2xl py-3.5 items-center" onPress={handleConfirmStep}>
                     <Text className="text-white font-bold text-sm">Yes, Delete</Text>
@@ -229,15 +228,15 @@ export const Settings: React.FC<Props> = ({
                 <View className="w-16 h-16 rounded-full bg-[#fef2f2] justify-center items-center mb-5 mt-1">
                   <MaterialCommunityIcons name="lock-outline" size={34} color="#ef4444" />
                 </View>
-                <Text className="text-[19px] font-extrabold text-text mb-2.5 text-center">Verify Your Identity</Text>
-                <Text className="text-sm text-text-muted font-medium leading-[21px] text-center mb-6 px-1">
+                <Text className="text-[19px] font-extrabold text-dark dark:text-light mb-2.5 text-center">Verify Your Identity</Text>
+                <Text className="text-sm text-muted font-medium leading-[21px] text-center mb-6 px-1 dark:text-light">
                   Enter your account password to confirm permanent deletion.
                 </Text>
 
                 <View className="flex-row items-center bg-bg border-[1.5px] border-[#e3e1ea] rounded-2xl px-4 py-3 w-full mb-2">
                   <MaterialCommunityIcons name="key-variant" size={18} color="#8b8a9f" style={{ marginRight: 10 }} />
                   <TextInput
-                    className="flex-1 text-[15px] text-text font-medium"
+                    className="flex-1 text-[15px] text-dark dark:text-light font-medium"
                     placeholder="Enter your password"
                     placeholderTextColor="#b1b0c5"
                     secureTextEntry={!passwordVisible}
@@ -260,7 +259,7 @@ export const Settings: React.FC<Props> = ({
 
                 <View className="flex-row w-full gap-3 mt-2">
                   <TouchableOpacity className="flex-1 bg-[#f5f4fd] rounded-2xl py-3.5 items-center" onPress={closeDeleteModal} disabled={deleteLoading}>
-                    <Text className="text-text-muted font-bold text-sm">Cancel</Text>
+                    <Text className="text-muted font-bold text-sm dark:text-light">Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     className={`flex-1 bg-[#ef4444] rounded-2xl py-3.5 items-center ${deleteLoading ? 'opacity-60' : ''}`}

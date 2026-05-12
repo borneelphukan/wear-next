@@ -16,6 +16,7 @@ import { AiTab } from '../components/tabs/AI';
 import { Settings } from '../components/tabs/Settings';
 import BottomDrawer, { FormField } from '../components/BottomDrawer';
 import Navbar from '../components/layout/Navbar';
+import { useColorScheme } from 'nativewind';
 import {
   MenuIcon,
 } from '../components/SharedIcons';
@@ -82,6 +83,12 @@ export default function DashboardScreen() {
   const [userEvents, setUserEvents] = useState<any[]>([]);
   const [isAddEventDrawerVisible, setIsAddEventDrawerVisible] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+  
+  const { setColorScheme } = useColorScheme();
+
+  useEffect(() => {
+    setColorScheme(darkMode ? 'dark' : 'light');
+  }, [darkMode, setColorScheme]);
 
   // Intelligent derived event lookup mapping standard JS dates into queryable calendar tags
   const getFormattedDateKey = (d: Date) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
@@ -215,15 +222,24 @@ export default function DashboardScreen() {
 
   const handleDeleteEvent = async () => {
     if (!editingEvent || !editingEvent.id) return;
+    
     try {
+      // Perform immediate removal on backend
       await axiosInstance.delete(`/calendar-events/${editingEvent.id}`);
-      setRefreshTrigger(prev => prev + 1);
+
+      // 1. Update local state immediately for instant responsiveness
+      setUserEvents(prev => prev.filter(e => e.id !== editingEvent.id));
+
+      // 2. Dismount visual overlays immediately
       setIsAddEventDrawerVisible(false);
       setEditingEvent(null);
-      Alert.alert('Deleted', 'Event successfully removed.');
+      
+      // 3. Fire standard confirmation trigger so visual lists reconcile seamlessly
+      setRefreshTrigger(prev => prev + 1);
+
     } catch (err) {
-      console.error('Deletion error:', err);
-      Alert.alert('Error', 'Failed to delete event. Please try again.');
+      console.error('Failed to remove calendar event:', err);
+      Alert.alert('Error', 'Unable to delete this event right now. Please try again later.');
     }
   };
 
@@ -637,7 +653,12 @@ export default function DashboardScreen() {
   ];
   const weeks: (number | null)[][] = [];
   for (let i = 0; i < calendarCells.length; i += 7) {
-    weeks.push(calendarCells.slice(i, i + 7));
+    const slice = calendarCells.slice(i, i + 7);
+    // Pad the trailing week so flexbox aligns single items to the first columns instead of stretching them
+    while (slice.length < 7) {
+      slice.push(null);
+    }
+    weeks.push(slice);
   }
 
   const handlePrevMonth = () => {
@@ -656,7 +677,7 @@ export default function DashboardScreen() {
   const isDark = darkMode === true;
   const themeBg = isDark ? '#0c0c12' : '#f8f7fc';
   const themeSurface = isDark ? '#161623' : '#ffffff';
-  const themeText = isDark ? '#f1f0ff' : '#1a1a24';
+  const themeText = isDark ? '#f9fafb' : '#111827';
   const themeBorder = isDark ? '#222233' : '#f0eff6';
 
   return (
@@ -673,8 +694,8 @@ export default function DashboardScreen() {
             <Text className="text-[22px] font-black tracking-tight ml-2" style={{ color: themeText }}>WearNext</Text>
           </View>
           <Image
-            source={{ uri: `https://ui-avatars.com/api/?name=${userFirstName || 'User'}&background=5e5ce6&color=fff&size=128` }}
-            className="w-[38px] h-[38px] rounded-full border-[1.5px] border-border-brand bg-[#f1f0ff]"
+            source={{ uri: `https://ui-avatars.com/api/?name=${userFirstName || 'User'}&background=3182ce&color=fff&size=128` }}
+            className="w-[38px] h-[38px] rounded-full border-[1.5px] border-border-brand bg-[#ebf8ff]"
           />
         </View>
       </View>
@@ -766,7 +787,7 @@ export default function DashboardScreen() {
         <>
           <TouchableOpacity
             className="absolute bottom-[90px] right-5 z-10 w-14 h-14 rounded-full bg-brand justify-center items-center"
-            style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 }}
+            style={{ shadowColor: '#3182ce', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 }}
             onPress={handleLaunchOutfitCamera}
           >
             <Text className="text-white text-[28px] font-light" style={{ marginTop: -2 }}>+</Text>
@@ -831,52 +852,52 @@ export default function DashboardScreen() {
             ]}
           >
             {/* High-Fidelity Header */}
-            <View className="px-6 pt-14 pb-6 border-b border-[#f5f4fa]" style={{ backgroundColor: themeSurface }}>
-              <View className="w-16 h-16 rounded-full p-0.5 border-2 border-[#5e5ce6] mb-4">
+            <View className="px-6 pt-14 pb-6 border-b border-border dark:border-gray-600" style={{ backgroundColor: themeSurface }}>
+              <View className="w-16 h-16 rounded-full p-0.5 border-2 border-brand mb-4">
                 <Image
-                  source={{ uri: `https://ui-avatars.com/api/?name=${userFirstName}&background=5e5ce6&color=fff&size=128` }}
-                  className="w-full h-full rounded-full bg-[#f1f0ff]"
+                  source={{ uri: `https://ui-avatars.com/api/?name=${userFirstName}&background=3182ce&color=fff&size=128` }}
+                  className="w-full h-full rounded-full bg-brand-light dark:bg-gray-700"
                 />
               </View>
-              <Text className="text-[22px] font-extrabold text-text mb-0.5 tracking-tight">{userFirstName || 'User'}</Text>
-              <Text className="text-[13.5px] font-medium text-text-faint mb-3.5">Style Enthusiast</Text>
-              <View className="self-start bg-[#eef2ff] px-3.5 py-1 rounded-full">
-                <Text className="text-[#5e5ce6] text-[11px] font-extrabold">{wardrobeItems.length || 0} Items</Text>
+              <Text className="text-[22px] font-extrabold text-dark mb-0.5 tracking-tight dark:text-light">{userFirstName || 'User'}</Text>
+              <Text className="text-[13.5px] font-medium text-faint mb-3.5 dark:text-light">Style Enthusiast</Text>
+              <View className="self-start bg-brand-light dark:bg-gray-700 px-3.5 py-1 rounded-full">
+                <Text className="text-brand text-[11px] font-extrabold">{wardrobeItems.length || 0} Items</Text>
               </View>
             </View>
 
             {/* Streamlined Sidebar Menu */}
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingBottom: 24, paddingHorizontal: 24 }}>
-              <Text className="text-[11px] font-extrabold text-text-faint tracking-widest mb-5 opacity-70">SYSTEM</Text>
+              <Text className="text-[11px] font-extrabold text-faint tracking-widest mb-5 opacity-70 dark:text-light">SYSTEM</Text>
               
               <TouchableOpacity 
                 className="flex-row items-center py-3 mb-2" 
                 onPress={() => { setSidebarOpen(false); setActiveTab('settings'); }}
               >
-                <MaterialCommunityIcons name="cog-outline" size={23} color="#4b5563" style={{ marginRight: 16 }} />
-                <Text className="text-[16px] font-semibold text-[#374151]">Settings</Text>
+                <MaterialCommunityIcons name="cog-outline" size={23} color={themeText} style={{ marginRight: 16 }} />
+                <Text className="text-[16px] font-semibold text-dark dark:text-light">Settings</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
                 className="flex-row items-center py-3" 
                 onPress={() => { setSidebarOpen(false); Alert.alert('Help', 'Redirecting to Customer Support center.'); }}
               >
-                <MaterialCommunityIcons name="help-circle-outline" size={23} color="#4b5563" style={{ marginRight: 16 }} />
-                <Text className="text-[16px] font-semibold text-[#374151]">Help & Support</Text>
+                <MaterialCommunityIcons name="help-circle-outline" size={23} color={themeText} style={{ marginRight: 16 }} />
+                <Text className="text-[16px] font-semibold text-dark dark:text-light">Help & Support</Text>
               </TouchableOpacity>
             </ScrollView>
 
             {/* Redesigned Branding Footer */}
-            <View className="pt-5 pb-2 px-6 border-t border-[#f5f4fa] items-center">
+            <View className="pt-5 pb-2 px-6 border-t border-border dark:border-gray-600 items-center" style={{ backgroundColor: themeSurface }}>
               <TouchableOpacity
-                className="flex-row items-center justify-center w-full bg-surface rounded-full h-12 border border-[#fecaca]"
+                className="flex-row items-center justify-center w-full bg-surface dark:bg-gray-700 rounded-full h-12 border border-[#fecaca] dark:border-[#452525]"
                 style={{ shadowColor: '#ef4444', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1 }}
                 onPress={() => { setSidebarOpen(false); handleLogout(); }}
               >
                 <MaterialCommunityIcons name="logout-variant" size={20} color="#ef4444" style={{ marginRight: 8 }} />
-                <Text className="text-[#b91c1c] font-extrabold text-[15px]">Sign Out</Text>
+                <Text className="text-red-200 dark:text-red-400 font-extrabold text-[15px]">Sign Out</Text>
               </TouchableOpacity>
-              <Text className="text-[#b1b0c5] text-[12px] font-medium mt-4 tracking-wide">WearNext v2.4.0</Text>
+              <Text className="text-faint dark:text-light text-xs font-medium mt-4 tracking-wide">WearNext v2.4.0</Text>
             </View>
           </Animated.View>
         </View>

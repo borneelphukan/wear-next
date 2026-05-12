@@ -95,13 +95,13 @@ const FormDropdown = ({
           <MaterialCommunityIcons
             name={leftIcon as any}
             size={18}
-            color="#5e5ce6"
+            color="#3182ce"
             style={{ marginRight: 10 }}
           />
         )}
         <View className="flex-1">
-          <Text className="text-[11px] font-bold text-text-muted">{label}</Text>
-          <Text className={`text-[14px] font-semibold ${selectedValue ? "text-text" : "text-text-faint"}`}>
+          <Text className="text-[11px] font-bold text-muted dark:text-light">{label}</Text>
+          <Text className={`text-[14px] font-semibold ${selectedValue ? "text-dark" : "text-faint"} dark:text-light`}>
             {selectedValue || `Select ${label}`}
           </Text>
         </View>
@@ -128,11 +128,11 @@ const FormDropdown = ({
                 }}
               >
                 <View className="flex-row items-center justify-between">
-                  <Text className={`text-[14px] font-bold ${selectedValue === item ? "text-brand" : "text-text"}`}>
+                  <Text className={`text-[14px] font-bold ${selectedValue === item ? "text-brand" : "text-dark"} dark:text-light`}>
                     {item}
                   </Text>
                   {selectedValue === item && (
-                    <MaterialIcons name="check" size={16} color="#5e5ce6" />
+                    <MaterialIcons name="check" size={16} color="#3182ce" />
                   )}
                 </View>
               </TouchableOpacity>
@@ -173,10 +173,10 @@ const FormAutocomplete = ({
     <View className="mb-3">
       <View className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${error ? "border-red-500" : "border-border-brand"}`}>
         {leftIcon && (
-          <MaterialCommunityIcons name={leftIcon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+          <MaterialCommunityIcons name={leftIcon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
         )}
         <TextInput
-          className="flex-1 text-[15px] text-text"
+          className="flex-1 text-[15px] text-dark dark:text-light"
           placeholder={placeholder || label}
           placeholderTextColor="#a09fb1"
           value={value}
@@ -201,7 +201,7 @@ const FormAutocomplete = ({
                 className="py-3 px-4 border-b border-border"
                 onPress={() => { onSelect(item); setVisible(false); }}
               >
-                <Text className="text-[15px] text-text font-semibold">{item}</Text>
+                <Text className="text-[15px] text-dark font-semibold dark:text-light">{item}</Text>
               </TouchableOpacity>
             )}
             keyboardShouldPersistTaps="handled"
@@ -346,7 +346,7 @@ export const BottomDrawer = ({
 
         return (
           <View key={field.name} className={`${containerClass} mb-3`}>
-            <Text className="text-[13px] font-bold text-text-muted mb-2">{field.label}</Text>
+            <Text className="text-[13px] font-bold text-muted mb-2 dark:text-light">{field.label}</Text>
             <TouchableOpacity
               onPress={pickImage}
               className="h-[120px] bg-brand-light rounded-xl overflow-hidden justify-center items-center"
@@ -355,7 +355,7 @@ export const BottomDrawer = ({
                 <Image source={{ uri: selectedImage }} className="w-full h-full" />
               ) : (
                 <View className="items-center">
-                  <MaterialCommunityIcons name="camera-plus-outline" size={32} color="#5e5ce6" />
+                  <MaterialCommunityIcons name="camera-plus-outline" size={32} color="#3182ce" />
                   <Text className="text-brand text-xs font-bold mt-2">Select or Upload Image</Text>
                 </View>
               )}
@@ -372,7 +372,7 @@ export const BottomDrawer = ({
         const items = Array.isArray(formData[field.name]) ? formData[field.name] : [{}];
         return (
           <View key={field.name} className="w-full mb-3">
-            <Text className="text-[15px] font-extrabold text-text mb-3">{field.label}</Text>
+            <Text className="text-[15px] font-extrabold text-dark mb-3 dark:text-light">{field.label}</Text>
             {items.map((item: any, itemIndex: number) => (
               <View
                 key={`${field.name}-${itemIndex}`}
@@ -380,7 +380,7 @@ export const BottomDrawer = ({
                 style={{ elevation: 1 }}
               >
                 <View className="flex-row justify-between items-center mb-3">
-                  <Text className="text-[14px] font-bold text-text">{field.label} #{itemIndex + 1}</Text>
+                  <Text className="text-[14px] font-bold text-dark dark:text-light">{field.label} #{itemIndex + 1}</Text>
                   {items.length > 1 && (
                     <TouchableOpacity
                       onPress={() => handleRemoveDynamicListItem(field.name, itemIndex)}
@@ -407,10 +407,10 @@ export const BottomDrawer = ({
                         ) : (
                           <View className="flex-row items-center h-[48px] bg-surface border border-border-brand rounded-xl px-3 mb-2">
                             {subField.icon && (
-                              <MaterialCommunityIcons name={subField.icon as any} size={16} color="#5e5ce6" style={{ marginRight: 8 }} />
+                              <MaterialCommunityIcons name={subField.icon as any} size={16} color="#3182ce" style={{ marginRight: 8 }} />
                             )}
                             <TextInput
-                              className="flex-1 text-[14px] text-text"
+                              className="flex-1 text-[14px] text-dark dark:text-light"
                               placeholder={subField.label}
                               placeholderTextColor="#a09fb1"
                               value={String(item[subField.name] || "")}
@@ -429,7 +429,7 @@ export const BottomDrawer = ({
               onPress={() => handleAddDynamicListItem(field.name)}
               className="flex-row items-center justify-center py-2 px-4 rounded-xl border border-dashed border-brand-lighter"
             >
-              <MaterialIcons name="add" size={16} color="#5e5ce6" />
+              <MaterialIcons name="add" size={16} color="#3182ce" />
               <Text className="text-brand text-[14px] font-bold ml-1">Add Another {field.label}</Text>
             </TouchableOpacity>
           </View>
@@ -443,7 +443,7 @@ export const BottomDrawer = ({
           <View key={field.name} className={`${containerClass} mb-3`}>
             <View className="flex-row items-center h-[52px] bg-bg border border-border-brand rounded-xl px-3">
               <TextInput
-                className="flex-1 text-[15px] text-text"
+                className="flex-1 text-[15px] text-dark dark:text-light"
                 placeholder={field.placeholder || "Type and press add"}
                 placeholderTextColor="#a09fb1"
                 value={tagInput}
@@ -451,7 +451,7 @@ export const BottomDrawer = ({
                 onSubmitEditing={() => handleAddTag(field.name, tagInput)}
               />
               <TouchableOpacity onPress={() => handleAddTag(field.name, tagInput)}>
-                <MaterialIcons name="add" size={22} color="#5e5ce6" />
+                <MaterialIcons name="add" size={22} color="#3182ce" />
               </TouchableOpacity>
             </View>
             <View className="flex-row flex-wrap gap-2 mt-2 mb-3">
@@ -459,7 +459,7 @@ export const BottomDrawer = ({
                 <View key={tag} className="flex-row items-center bg-brand-light rounded-full px-3 py-1">
                   <Text className="text-brand text-[13px] font-semibold">{tag}</Text>
                   <TouchableOpacity onPress={() => handleRemoveTag(field.name, tag)} className="ml-2">
-                    <MaterialIcons name="close" size={14} color="#5e5ce6" />
+                    <MaterialIcons name="close" size={14} color="#3182ce" />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -510,7 +510,7 @@ export const BottomDrawer = ({
               <View className={`w-6 h-6 rounded-md border-2 justify-center items-center ${checked ? "bg-brand border-brand" : "border-border-brand bg-bg"}`}>
                 {checked && <MaterialIcons name="check" size={16} color="#ffffff" />}
               </View>
-              <Text className="text-[15px] font-semibold text-text">{field.label}</Text>
+              <Text className="text-[15px] font-semibold text-dark dark:text-light">{field.label}</Text>
             </TouchableOpacity>
           </View>
         );
@@ -526,11 +526,11 @@ export const BottomDrawer = ({
               className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}
             >
               {field.icon && (
-                <MaterialCommunityIcons name={field.icon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+                <MaterialCommunityIcons name={field.icon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
               )}
               <View className="flex-1">
-                <Text className="text-[11px] font-bold text-text-muted">{field.label}</Text>
-                <Text className={`text-[14px] font-semibold ${formData[field.name] ? "text-text" : "text-text-faint"}`}>
+                <Text className="text-[11px] font-bold text-muted dark:text-light">{field.label}</Text>
+                <Text className={`text-[14px] font-semibold ${formData[field.name] ? "text-dark" : "text-faint"} dark:text-light`}>
                   {formData[field.name] || "Select date"}
                 </Text>
               </View>
@@ -551,11 +551,11 @@ export const BottomDrawer = ({
               className={`flex-row items-center h-[52px] bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}
             >
               {field.icon && (
-                <MaterialCommunityIcons name={field.icon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+                <MaterialCommunityIcons name={field.icon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
               )}
               <View className="flex-1">
-                <Text className="text-[11px] font-bold text-text-muted">{field.label}</Text>
-                <Text className={`text-[14px] font-semibold ${formData[field.name] ? "text-text" : "text-text-faint"}`}>
+                <Text className="text-[11px] font-bold text-muted dark:text-light">{field.label}</Text>
+                <Text className={`text-[14px] font-semibold ${formData[field.name] ? "text-dark" : "text-faint"} dark:text-light`}>
                   {formData[field.name] ? (
                     (() => {
                       const [h, m] = formData[field.name].split(':');
@@ -579,10 +579,10 @@ export const BottomDrawer = ({
         <View key={field.name} className={`${containerClass} mb-3`}>
           <View className={`flex-row items-center ${field.multiline ? "min-h-[52px] py-2" : "h-[52px]"} bg-bg border rounded-xl px-3 ${errors[field.name] ? "border-red-500" : "border-border-brand"} ${field.disabled ? "opacity-60" : ""}`}>
             {field.icon && (
-              <MaterialCommunityIcons name={field.icon as any} size={18} color="#5e5ce6" style={{ marginRight: 8 }} />
+              <MaterialCommunityIcons name={field.icon as any} size={18} color="#3182ce" style={{ marginRight: 8 }} />
             )}
             <TextInput
-              className="flex-1 text-[15px] text-text"
+              className="flex-1 text-[15px] text-dark dark:text-light"
               placeholder={field.placeholder || field.label}
               placeholderTextColor="#a09fb1"
               value={String(formData[field.name] || "")}
@@ -702,12 +702,12 @@ export const BottomDrawer = ({
                     <MaterialIcons name="close" size={20} color="#656475" />
                   </TouchableOpacity>
                 ) : (
-                  <Text className="text-[18px] font-extrabold text-text">{title}</Text>
+                  <Text className="text-[18px] font-extrabold text-dark dark:text-light">{title}</Text>
                 )}
 
                 {/* Centered Title in HeaderSubmit flow */}
                 {headerSubmit && (
-                  <Text className="text-[17px] font-extrabold text-text">{title}</Text>
+                  <Text className="text-[17px] font-extrabold text-dark dark:text-light">{title}</Text>
                 )}
 
                 {/* Dynamic Right Element: Submit Tick OR default Close X */}
@@ -742,16 +742,7 @@ export const BottomDrawer = ({
               {onDelete && (
                 <TouchableOpacity
                   activeOpacity={0.7}
-                  onPress={() => {
-                    Alert.alert(
-                      'Delete Record',
-                      'Are you sure you want to permanently remove this from your database?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        { text: 'Delete', style: 'destructive', onPress: onDelete }
-                      ]
-                    );
-                  }}
+                  onPress={onDelete}
                   className="w-full h-[54px] rounded-2xl border border-[#ffeded] bg-[#fff4f4] flex-row justify-center items-center mt-10 mb-4"
                   style={{ shadowColor: '#ff3b30', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6 }}
                 >
@@ -766,7 +757,7 @@ export const BottomDrawer = ({
                   onPress={handleSubmit}
                   disabled={isSubmitting}
                   className={`w-full h-[52px] rounded-full justify-center items-center mt-4 ${isSubmitting ? "opacity-60" : ""} bg-brand`}
-                  style={{ shadowColor: '#5e5ce6', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 }}
+                  style={{ shadowColor: '#3182ce', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 }}
                 >
                   {isSubmitting ? (
                     <ActivityIndicator color="#ffffff" />
@@ -786,7 +777,7 @@ export const BottomDrawer = ({
           <TouchableOpacity activeOpacity={1} className="absolute inset-0 bg-[rgba(0,0,0,0.4)]" onPress={() => setDatePickerVisible(false)} />
           <View className="bg-surface rounded-t-3xl p-5">
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-[17px] font-extrabold text-text">Select Date</Text>
+              <Text className="text-[17px] font-extrabold text-dark dark:text-light">Select Date</Text>
               <TouchableOpacity onPress={() => setDatePickerVisible(false)}>
                 <MaterialIcons name="close" size={22} color="#656475" />
               </TouchableOpacity>
@@ -794,13 +785,13 @@ export const BottomDrawer = ({
             <Calendar
               onDayPress={handleDayPress}
               markedDates={activeDateField && formData[activeDateField]
-                ? { [formData[activeDateField]]: { selected: true, selectedColor: '#5e5ce6' } }
+                ? { [formData[activeDateField]]: { selected: true, selectedColor: '#3182ce' } }
                 : {}
               }
               theme={{
-                selectedDayBackgroundColor: '#5e5ce6',
-                todayTextColor: '#5e5ce6',
-                arrowColor: '#5e5ce6',
+                selectedDayBackgroundColor: '#3182ce',
+                todayTextColor: '#3182ce',
+                arrowColor: '#3182ce',
               }}
             />
           </View>

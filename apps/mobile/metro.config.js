@@ -20,5 +20,11 @@ config.resolver.nodeModulesPaths = [
 // 3. Enable package exports (helps with modern package resolution)
 config.resolver.unstable_enablePackageExports = true;
 
+// 3.5 Force resolution of React/React-Native to SINGLE instances in project root to prevent Hook errors
+config.resolver.extraNodeModules = {
+  'react': path.resolve(projectRoot, 'node_modules/react'),
+  'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
+};
+
 // 4. Wrap with NativeWind for CSS processing
 module.exports = withNativeWind(config, { input: "./global.css" });
