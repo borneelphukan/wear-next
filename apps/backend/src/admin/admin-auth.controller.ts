@@ -2,11 +2,13 @@ import {
   Controller, Post, Body, HttpCode, HttpStatus,
   ConflictException, UnauthorizedException, InternalServerErrorException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 @Controller('admin/auth')
+@Throttle({ default: { limit: 5, ttl: 60000 } })
 export class AdminAuthController {
   constructor(
     private readonly prisma: PrismaService,

@@ -27,19 +27,19 @@ import type { DashboardStats } from '../../models/admin.models';
           <app-stats-card
             label="Total Users"
             [value]="stats.totalUsers"
-            icon="👥"
+            icon="people"
             colorClass="bg-blue-50 text-blue-600"
           />
           <app-stats-card
             label="Wardrobe Items"
             [value]="stats.totalWardrobeItems"
-            icon="👔"
+            icon="checkroom"
             colorClass="bg-emerald-50 text-emerald-600"
           />
           <app-stats-card
             label="Calendar Events"
             [value]="stats.totalEvents"
-            icon="📅"
+            icon="calendar_today"
             colorClass="bg-amber-50 text-amber-600"
           />
         </div>

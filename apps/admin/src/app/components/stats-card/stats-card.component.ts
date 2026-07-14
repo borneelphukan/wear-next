@@ -10,7 +10,7 @@ import { Component, input } from '@angular/core';
           class="flex h-12 w-12 items-center justify-center rounded-lg"
           [class]="colorClass()"
         >
-          <span class="text-xl">{{ icon() }}</span>
+          <span class="material-icons text-xl">{{ icon() }}</span>
         </div>
         <div>
           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ label() }}</p>

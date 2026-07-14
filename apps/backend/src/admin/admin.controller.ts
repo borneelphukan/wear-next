@@ -2,6 +2,7 @@ import {
   Controller, Get, Delete, Patch, Param, Query, Body, Req,
   UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { AuthGuard } from '../auth/auth.guard';
 import { AdminGuard } from './admin.guard';
@@ -9,6 +10,7 @@ import { AdminService } from './admin.service';
 
 @Controller('admin')
 @UseGuards(AuthGuard, AdminGuard)
+@Throttle({ default: { limit: 30, ttl: 60000 } })
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
