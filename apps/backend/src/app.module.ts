@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { WardrobeModule } from './wardrobe/wardrobe.module';
 import { AiModule } from './ai/ai.module';
 import { CalendarEventsModule } from './calendar-events/calendar-events.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CalendarEventsModule } from './calendar-events/calendar-events.module';
     WardrobeModule,
     AiModule,
     CalendarEventsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
